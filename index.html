@@ -2,916 +2,285 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-<title>Neon Brick Breaker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+<meta name="description" content="霓虹游戏厅 - 街机 × 像素 × 霓虹 单文件 HTML 小游戏合集">
+<title>霓虹游戏厅 · Neon Arcade</title>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: #05010f; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
-#stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, #160834 0%, #05010f 70%); }
-#wrap { position: relative; }
-canvas#game { display: block; background: #0a0420; border-radius: 12px; box-shadow: 0 0 60px rgba(120, 60, 255, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06) inset; cursor: none; }
-.overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8, 2, 24, 0.72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 12px; padding: 24px; z-index: 5; }
-.overlay.show { display: flex; }
-.panel { width: 100%; max-width: 380px; text-align: center; }
-.brand { font-size: 11px; letter-spacing: 6px; color: #8a7bff; text-transform: uppercase; margin-bottom: 8px; }
-h1 { font-size: 36px; font-weight: 800; letter-spacing: 2px; background: linear-gradient(135deg, #00f0ff 0%, #ff5af7 100%); -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.1; margin-bottom: 6px; }
-.sub { font-size: 13px; color: #8b8aa8; margin-bottom: 22px; letter-spacing: 1px; }
-.row { display: flex; gap: 10px; margin-bottom: 10px; }
-.btn { flex: 1; padding: 12px 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; font-size: 14px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; font-family: inherit; }
-.btn:hover { background: rgba(0, 240, 255, 0.08); border-color: rgba(0, 240, 255, 0.5); transform: translateY(-1px); }
-.btn:active { transform: translateY(0); }
-.btn.primary { background: linear-gradient(135deg, #00d4ff 0%, #b347ff 100%); border: none; color: #06021a; font-weight: 700; }
-.btn.primary:hover { box-shadow: 0 0 28px rgba(0, 212, 255, 0.55); }
-.btn.ghost { background: transparent; }
-.stat { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; margin-bottom: 8px; font-size: 14px; }
-.stat .k { color: #8b8aa8; }
-.stat .v { font-weight: 700; font-variant-numeric: tabular-nums; }
-.tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(0, 240, 255, 0.12); color: #5ff0ff; letter-spacing: 1px; margin-bottom: 12px; }
-.help { text-align: left; font-size: 13px; color: #b6b4d4; line-height: 1.7; background: rgba(255, 255, 255, 0.03); padding: 14px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 16px; }
-.help b { color: #fff; }
-.key { display: inline-block; font-size: 11px; padding: 1px 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; font-family: ui-monospace, monospace; margin: 0 2px; }
-.toggle { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
-.switch { width: 38px; height: 22px; background: rgba(255,255,255,0.1); border-radius: 11px; position: relative; transition: background 0.2s; }
-.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: left 0.2s; }
-.switch.on { background: linear-gradient(135deg, #00d4ff, #b347ff); }
-.switch.on::after { left: 18px; }
-.footer { font-size: 11px; color: #555274; margin-top: 14px; letter-spacing: 1px; }
-.scoreboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-.sb { padding: 10px 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; }
-.sb .k { font-size: 10px; color: #8b8aa8; letter-spacing: 1px; text-transform: uppercase; }
-.sb .v { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; }
-.combo { color: #ff5af7; }
-.level { color: #5ff0ff; }
-.best { color: #ffd86b; }
-.toast { position: absolute; left: 50%; top: 18%; transform: translateX(-50%); padding: 10px 18px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 999px; font-size: 13px; color: #fff; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s; z-index: 4; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(6px); }
-.toast .em { font-weight: 800; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; min-height: 100%; }
+  body {
+    background: radial-gradient(ellipse at top, #1a0938 0%, #05010f 55%, #05010f 100%);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.5;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      linear-gradient(rgba(120, 90, 220, 0.05) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(90deg, rgba(120, 90, 220, 0.05) 1px, transparent 1px) 0 0 / 40px 40px;
+    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(0, 240, 255, 0.12) 0%, transparent 35%),
+      radial-gradient(circle at 80% 70%, rgba(255, 90, 247, 0.10) 0%, transparent 40%);
+  }
+  .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 56px 24px 80px; }
+  header { text-align: center; margin-bottom: 48px; }
+  .brand { font-size: 12px; letter-spacing: 8px; color: #8a7bff; text-transform: uppercase; margin-bottom: 14px; }
+  h1 {
+    font-size: clamp(40px, 8vw, 76px);
+    font-weight: 800;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #00f0ff 0%, #ff5af7 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    line-height: 1.1;
+    margin-bottom: 14px;
+    filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.3));
+  }
+  .tagline { font-size: clamp(13px, 1.8vw, 16px); color: #8b8aa8; letter-spacing: 2px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    --accent: #00f0ff;
+    display: block;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    overflow: hidden;
+    text-decoration: none;
+    color: #fff;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.4, 1), border-color 0.25s, box-shadow 0.25s, background 0.25s;
+    cursor: pointer;
+    position: relative;
+  }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 16px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--accent), 0 0 40px -8px var(--accent);
+    outline: none;
+  }
+  .cover {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, var(--a, #00f0ff) 0%, var(--b, #ff5af7) 100%);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 4px),
+      radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.45) 100%);
+    pointer-events: none;
+  }
+  .art {
+    position: relative; z-index: 1;
+    width: 78%; height: 78%;
+    color: rgba(255, 255, 255, 0.96);
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.5));
+  }
+  .art svg { width: 100%; height: 100%; display: block; }
+  .badge {
+    position: absolute; top: 14px; right: 14px;
+    padding: 4px 10px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    font-size: 10px; letter-spacing: 2px; font-weight: 700;
+    color: #fff;
+    z-index: 2;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .badge.new { color: #5ff0ff; border-color: rgba(0, 240, 255, 0.6); }
+  .body { padding: 22px; }
+  .titles { margin-bottom: 10px; }
+  .titles h2 { font-size: 22px; font-weight: 700; margin-bottom: 2px; color: #fff; }
+  .titles .en { font-size: 11px; letter-spacing: 2px; color: #8b8aa8; text-transform: uppercase; }
+  .body p { font-size: 14px; color: #b6b4d4; margin-bottom: 14px; line-height: 1.6; min-height: 44px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .tags span {
+    font-size: 10px; letter-spacing: 1px;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    color: #b6b4d4;
+  }
+  .cta {
+    font-size: 13px; font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+    display: flex; align-items: center; gap: 6px;
+    transition: gap 0.2s;
+  }
+  .card:hover .cta { gap: 10px; }
+  footer {
+    margin-top: 64px;
+    text-align: center;
+    color: #555274;
+    font-size: 12px;
+  }
+  footer details {
+    display: inline-block;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    max-width: 580px;
+  }
+  footer summary {
+    cursor: pointer;
+    color: #8b8aa8;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    list-style: none;
+    user-select: none;
+  }
+  footer summary::-webkit-details-marker { display: none; }
+  footer summary::before { content: "▸ "; color: #5ff0ff; }
+  footer details[open] summary::before { content: "▾ "; }
+  footer ol { margin: 12px 0 0 20px; line-height: 1.9; color: #b6b4d4; }
+  footer code {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    padding: 1px 6px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    color: #5ff0ff;
+  }
+  .copy { letter-spacing: 1.5px; font-size: 11px; margin-top: 8px; }
+  @media (max-width: 600px) {
+    .container { padding: 36px 16px 60px; }
+    header { margin-bottom: 32px; }
+    .grid { gap: 14px; }
+    .body { padding: 18px; }
+    .titles h2 { font-size: 19px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+  }
 </style>
 </head>
 <body>
-<div id="stage">
-  <div id="wrap">
-    <canvas id="game" width="800" height="600"></canvas>
-    <div class="toast" id="toast"></div>
+  <div class="container">
+    <header>
+      <div class="brand">NEON ARCADE</div>
+      <h1>霓虹游戏厅</h1>
+      <p class="tagline">街机 × 像素 × 霓虹 · 单文件 HTML 小游戏合集</p>
+    </header>
 
-    <div class="overlay show" id="mainMenu">
-      <div class="panel">
-        <div class="brand">NEON ARCADE</div>
-        <h1>霓虹打砖块</h1>
-        <div class="sub">Neon Brick Breaker</div>
-        <div class="scoreboard">
-          <div class="sb"><div class="k">Best</div><div class="v best" id="menuBest">0</div></div>
-          <div class="sb"><div class="k">Level</div><div class="v level" id="menuLevel">1</div></div>
-          <div class="sb"><div class="k">Last</div><div class="v combo" id="menuLast">0</div></div>
-        </div>
-        <div class="row"><button class="btn primary" id="btnPlay">开始游戏</button></div>
-        <div class="row">
-          <button class="btn" id="btnHelp">玩法</button>
-          <button class="btn" id="btnSettings">设置</button>
-        </div>
-        <div class="footer">移动鼠标 / 触屏 / 方向键控制挡板</div>
-      </div>
-    </div>
+    <main class="grid" id="grid"></main>
 
-    <div class="overlay" id="helpMenu">
-      <div class="panel">
-        <div class="tag">HOW TO PLAY</div>
-        <h1>玩法说明</h1>
-        <div class="help">
-          <div><b>移动：</b> <span class="key">←</span> <span class="key">→</span> 或 <span class="key">A</span> <span class="key">D</span>，鼠标 / 触屏拖动</div>
-          <div><b>发射：</b> <span class="key">Space</span> 或点击 / 触屏</div>
-          <div><b>暂停：</b> <span class="key">P</span> / <span class="key">Esc</span></div>
-          <div><b>静音：</b> <span class="key">M</span></div>
-          <div style="margin-top:8px;"><b>道具：</b> E 长大 · S 缩小 · M 多球 · B 慢球 · T 穿透 · L 激光</div>
-          <div style="margin-top:8px;"><b>提示：</b> 挡板不同位置反弹角度不同，连续命中触发连击加分。</div>
-        </div>
-        <div class="row"><button class="btn primary" id="btnHelpBack">返回</button></div>
-      </div>
-    </div>
-
-    <div class="overlay" id="settingsMenu">
-      <div class="panel">
-        <div class="tag">SETTINGS</div>
-        <h1>设置</h1>
-        <div class="toggle" id="toggleSound">
-          <span>音效</span><div class="switch on" id="swSound"></div>
-        </div>
-        <div class="toggle" id="toggleHaptics">
-          <span>震动反馈</span><div class="switch on" id="swHaptics"></div>
-        </div>
-        <div class="toggle" id="toggleParticles">
-          <span>粒子特效</span><div class="switch on" id="swParticles"></div>
-        </div>
-        <div class="row" style="margin-top: 14px;">
-          <button class="btn ghost" id="btnReset">重置进度</button>
-          <button class="btn primary" id="btnSettingsBack">完成</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="overlay" id="pauseMenu">
-      <div class="panel">
-        <div class="tag">PAUSED</div>
-        <h1>已暂停</h1>
-        <div class="sub">按 P 或 Esc 继续</div>
-        <div class="row"><button class="btn primary" id="btnResume">继续</button></div>
-        <div class="row">
-          <button class="btn" id="btnRestart">重新开始</button>
-          <button class="btn" id="btnQuit">返回菜单</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="overlay" id="gameOver">
-      <div class="panel">
-        <div class="tag" id="goTag">GAME OVER</div>
-        <h1 id="goTitle">挑战结束</h1>
-        <div class="scoreboard">
-          <div class="sb"><div class="k">Score</div><div class="v combo" id="goScore">0</div></div>
-          <div class="sb"><div class="k">Level</div><div class="v level" id="goLevel">1</div></div>
-          <div class="sb"><div class="k">Best</div><div class="v best" id="goBest">0</div></div>
-        </div>
-        <div class="row"><button class="btn primary" id="btnGoRetry">再来一局</button></div>
-        <div class="row"><button class="btn" id="btnGoMenu">返回菜单</button></div>
-      </div>
-    </div>
-
-    <div class="overlay" id="levelClear">
-      <div class="panel">
-        <div class="tag">LEVEL CLEAR</div>
-        <h1 id="lcTitle">关卡完成</h1>
-        <div class="sub" id="lcSub">准备进入下一关</div>
-        <div class="scoreboard">
-          <div class="sb"><div class="k">Score</div><div class="v combo" id="lcScore">0</div></div>
-          <div class="sb"><div class="k">Bonus</div><div class="v level" id="lcBonus">+0</div></div>
-          <div class="sb"><div class="k">Lives</div><div class="v best" id="lcLives">3</div></div>
-        </div>
-        <div class="row"><button class="btn primary" id="btnLcNext">下一关</button></div>
-      </div>
-    </div>
+    <footer>
+      <details>
+        <summary>如何添加新游戏？</summary>
+        <ol>
+          <li>在仓库根目录建一个 <code>你的游戏名/index.html</code>（可以引用同目录的 <code>.js</code> / <code>.css</code>）</li>
+          <li>在本页 <code>&lt;script&gt;</code> 里的 <code>GAMES</code> 数组中加一项配置</li>
+          <li>push 到 GitHub，GitHub Pages 自动上线</li>
+        </ol>
+      </details>
+      <div class="copy">© 2026 NEON ARCADE · 单文件 · 零依赖</div>
+    </footer>
   </div>
-</div>
 
-<script>
-"use strict";
-const GW = 800, GH = 600;
-const PADDLE_W = 110, PADDLE_H = 14;
-const PADDLE_Y = GH - 50;
-const BALL_R = 8;
-const BRICK_W = 70, BRICK_H = 22;
-const BRICK_GAP = 4;
-const BRICK_OFFSET_X = (GW - (10 * BRICK_W + 9 * BRICK_GAP)) / 2;
-const BRICK_OFFSET_Y = 90;
-const POWERUP_DROP_CHANCE = 0.16;
-
-const COLORS = {
-  bgTop: "#0a0420", bgBot: "#150630",
-  grid: "rgba(120, 90, 220, 0.07)",
-  paddle: "#00f0ff", paddleGlow: "rgba(0, 240, 255, 0.55)",
-  ball: "#ffffff", ballGlow: "rgba(0, 240, 255, 0.7)",
-  rowColors: ["#ff5af7","#ff8b5a","#ffd86b","#9eff5a","#5af7c8","#5ab9ff","#7a5aff","#ff5ad1"],
-  silver: ["#d0d6e0","#a9b0bd"],
-  gold: ["#ffe27a","#ffae3b"],
-  steel: ["#3a3a52","#22223a"]
-};
-
-const POWERUP_TYPES = [
-  { id:"E", label:"扩", color:"#5af7c8", desc:"挡板变长" },
-  { id:"S", label:"缩", color:"#ff5a5a", desc:"挡板变短" },
-  { id:"M", label:"多", color:"#ffd86b", desc:"多球齐发" },
-  { id:"B", label:"慢", color:"#5ab9ff", desc:"球速减半" },
-  { id:"T", label:"穿", color:"#ff8bff", desc:"穿透弹" },
-  { id:"L", label:"射", color:"#ff5a5a", desc:"激光炮" }
-];
-
-const LEVELS = [
-  { name:"序章 · 第一关", pattern:[
-    "..........",
-    "..........",
-    "1111111111",
-    "1111111111",
-    "1111111111",
-    "1111111111",
-    "1111111111",
-    ".........."
-  ]},
-  { name:"三角阵", pattern:[
-    "..........",
-    "....11....",
-    "...1111...",
-    "..111111..",
-    ".11111111.",
-    "1111111111",
-    "2222222222",
-    ".........."
-  ]},
-  { name:"菱形之舞", pattern:[
-    "..........",
-    "....11....",
-    "...1331...",
-    "..122221..",
-    "..122221..",
-    "...1331...",
-    "....11....",
-    ".........."
-  ]},
-  { name:"霓虹心", pattern:[
-    "..........",
-    ".11...11..",
-    "1111.1111.",
-    "111211111.",
-    ".12222221.",
-    "..122221..",
-    "...1221...",
-    "....11...."
-  ]},
-  { name:"堡垒", pattern:[
-    "..........",
-    ".4444444..",
-    ".4222224..",
-    ".4211124..",
-    ".4211124..",
-    ".4211124..",
-    ".4222224..",
-    ".4444444.."
-  ]},
-  { name:"星星坠落", pattern:[
-    "..........",
-    "....33....",
-    "...1331...",
-    "..113311..",
-    "1113333111",
-    "..111111..",
-    "..11..11..",
-    ".11....11."
-  ]},
-  { name:"螺旋回廊", pattern:[
-    "..........",
-    "1111111...",
-    "1......1..",
-    "1.1111.1..",
-    "1.1..1.1..",
-    "1.1.11.1..",
-    "1.1....1..",
-    ".1111111.."
-  ]},
-  { name:"终章 · 终极挑战", pattern:[
-    "..........",
-    ".33333333.",
-    "3222222223",
-    "3211111123",
-    "3211555123",
-    "3211111123",
-    "3222222223",
-    ".33333333."
-  ]}
-];
-
-const STORE_KEY = "neon-brick-breaker-v1";
-const defaultStore = { bestScore:0, unlockedLevel:0, lastScore:0, sound:true, haptics:true, particles:true };
-function loadStore() {
-  try { return Object.assign({}, defaultStore, JSON.parse(localStorage.getItem(STORE_KEY) || "{}")); }
-  catch { return { ...defaultStore }; }
-}
-function saveStore() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch {} }
-let store = loadStore();
-
-let audioCtx = null;
-function ensureAudio() {
-  if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch { audioCtx = null; } }
-  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-  return audioCtx;
-}
-function beep(freq, dur, type, vol, slide) {
-  if (!store.sound) return;
-  const ac = ensureAudio(); if (!ac) return;
-  const t = ac.currentTime;
-  const o = ac.createOscillator();
-  const g = ac.createGain();
-  o.type = type || "square"; o.frequency.setValueAtTime(freq, t);
-  if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), t + dur);
-  g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(vol || 0.08, t + 0.005);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g); g.connect(ac.destination);
-  o.start(t); o.stop(t + dur + 0.02);
-}
-function noiseBurst(dur, vol, lp) {
-  if (!store.sound) return;
-  const ac = ensureAudio(); if (!ac) return;
-  const t = ac.currentTime;
-  const buf = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-  const src = ac.createBufferSource(); src.buffer = buf;
-  const filt = ac.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = lp || 1200;
-  const g = ac.createGain(); g.gain.setValueAtTime(vol || 0.06, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  src.connect(filt); filt.connect(g); g.connect(ac.destination);
-  src.start(t); src.stop(t + dur + 0.02);
-}
-const sfx = {
-  hit:   () => beep(720, 0.05, "square", 0.06),
-  brick: () => { beep(620, 0.05, "square", 0.05); setTimeout(() => beep(820, 0.06, "square", 0.05), 30); },
-  metal: () => noiseBurst(0.1, 0.07, 600),
-  power: () => { beep(660,0.07,"triangle",0.07); setTimeout(() => beep(880,0.07,"triangle",0.07), 70); setTimeout(() => beep(1320,0.1,"triangle",0.07), 140); },
-  lose:  () => { beep(440,0.2,"sawtooth",0.07,-200); setTimeout(() => beep(220,0.3,"sawtooth",0.07,-120), 180); },
-  win:   () => { [523,659,784,1046].forEach((f,i) => setTimeout(() => beep(f, 0.13, "triangle", 0.08), i * 90)); },
-  shoot: () => beep(1500, 0.05, "square", 0.04, -800),
-  combo: (n) => beep(700 + n * 40, 0.07, "triangle", 0.07),
-  click: () => beep(900, 0.04, "square", 0.04)
-};
-
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const wrap = document.getElementById("wrap");
-let scale = 1;
-function resize() {
-  const maxW = window.innerWidth - 24;
-  const maxH = window.innerHeight - 24;
-  scale = Math.min(maxW / GW, maxH / GH, 1.6);
-  canvas.style.width = (GW * scale) + "px";
-  canvas.style.height = (GH * scale) + "px";
-}
-window.addEventListener("resize", resize); resize();
-
-const input = { mouseX: GW / 2, keys: new Set(), touchActive: false };
-function clientToGame(clientX, clientY) {
-  const r = canvas.getBoundingClientRect();
-  return { x: (clientX - r.left) * (GW / r.width), y: (clientY - r.top) * (GH / r.height) };
-}
-canvas.addEventListener("mousemove", e => { input.mouseX = clientToGame(e.clientX, e.clientY).x; });
-canvas.addEventListener("mousedown", e => {
-  input.mouseX = clientToGame(e.clientX, e.clientY).x;
-  if (state.mode === "playing" && !ballLaunched) launchBall();
-});
-canvas.addEventListener("touchstart", e => {
-  e.preventDefault();
-  const t = e.touches[0]; input.mouseX = clientToGame(t.clientX, t.clientY).x; input.touchActive = true;
-  if (state.mode === "playing" && !ballLaunched) launchBall();
-}, { passive: false });
-canvas.addEventListener("touchmove", e => {
-  e.preventDefault();
-  const t = e.touches[0]; input.mouseX = clientToGame(t.clientX, t.clientY).x;
-}, { passive: false });
-canvas.addEventListener("touchend", e => { e.preventDefault(); input.touchActive = false; }, { passive: false });
-window.addEventListener("keydown", e => {
-  input.keys.add(e.key);
-  if (e.key === " " || e.key === "Enter") {
-    if (state.mode === "menu") startGame();
-    else if (state.mode === "playing" && !ballLaunched) launchBall();
-    e.preventDefault();
-  }
-  if (e.key === "p" || e.key === "P" || e.key === "Escape") {
-    if (state.mode === "playing") pauseGame();
-    else if (state.mode === "paused") resumeGame();
-  }
-  if (e.key === "m" || e.key === "M") { store.sound = !store.sound; saveStore(); refreshSettingsUI(); }
-  if (["ArrowLeft","ArrowRight","a","A","d","D"].includes(e.key)) e.preventDefault();
-});
-window.addEventListener("keyup", e => input.keys.delete(e.key));
-
-const state = {
-  mode: "menu",
-  levelIndex: 0, score: 0, lives: 3,
-  combo: 0, comboTimer: 0, shake: 0,
-  slowTimer: 0, throughTimer: 0, laserTimer: 0, laserCooldown: 0,
-  time: 0
-};
-let paddle, balls, bricks, particles, powerups, lasers, ballTrail;
-let ballLaunched = false;
-let bgParticles = [];
-for (let i = 0; i < 40; i++) {
-  bgParticles.push({
-    x: Math.random() * GW, y: Math.random() * GH,
-    r: Math.random() * 1.6 + 0.4,
-    vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8,
-    c: Math.random() < 0.5 ? "rgba(0, 240, 255," : "rgba(255, 90, 247,"
-  });
-}
-
-function rand(min, max) { return Math.random() * (max - min) + min; }
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-function rectsOverlap(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
-function vibrate(ms) { if (store.haptics && navigator.vibrate) try { navigator.vibrate(ms); } catch {} }
-
-const toastEl = document.getElementById("toast");
-let toastTimer = 0;
-function toast(text, em) {
-  toastEl.innerHTML = em ? `<span class="em">${em}</span> ${text}` : text;
-  toastEl.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1600);
-}
-
-function buildLevel(idx) {
-  const lv = LEVELS[idx]; bricks = [];
-  for (let r = 0; r < lv.pattern.length; r++) {
-    for (let c = 0; c < lv.pattern[r].length; c++) {
-      const ch = lv.pattern[r][c];
-      if (ch === ".") continue;
-      const x = BRICK_OFFSET_X + c * (BRICK_W + BRICK_GAP);
-      const y = BRICK_OFFSET_Y + r * (BRICK_H + BRICK_GAP);
-      let hits = 1, type = "normal", color = COLORS.rowColors[r % COLORS.rowColors.length];
-      if (ch === "1") { hits = 1; }
-      else if (ch === "2") { hits = 2; type = "strong"; color = null; }
-      else if (ch === "3") { hits = 3; type = "tough"; color = null; }
-      else if (ch === "4") { hits = Infinity; type = "steel"; color = null; }
-      bricks.push({ x, y, w: BRICK_W, h: BRICK_H, hits, maxHits: hits, type, color, time: Math.random() * Math.PI * 2 });
-    }
-  }
-}
-
-function burst(x, y, color, n, speed, life, size) {
-  if (!store.particles) return;
-  n = n || 14; speed = speed || 180; life = life || 0.7; size = size || 2.6;
-  for (let i = 0; i < n; i++) {
-    const a = Math.random() * Math.PI * 2;
-    const s = rand(speed * 0.4, speed);
-    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life, maxLife: life, color, size: rand(size * 0.5, size) });
-  }
-}
-
-function spawnPowerup(x, y) {
-  if (Math.random() > POWERUP_DROP_CHANCE) return;
-  const t = pick(POWERUP_TYPES);
-  powerups.push({ x, y, w: 28, h: 28, vy: 110, type: t, alive: true, time: 0 });
-}
-
-function startGame() {
-  state.levelIndex = store.unlockedLevel || 0;
-  state.score = 0; state.lives = 3;
-  state.combo = 0; state.comboTimer = 0;
-  state.slowTimer = 0; state.throughTimer = 0; state.laserTimer = 0; state.laserCooldown = 0;
-  state.shake = 0;
-  beginLevel();
-  state.mode = "playing";
-  showOverlay(null);
-  sfx.click();
-}
-function beginLevel() {
-  paddle = { x: GW/2 - PADDLE_W/2, y: PADDLE_Y, w: PADDLE_W, h: PADDLE_H, baseW: PADDLE_W };
-  balls = []; ballTrail = []; particles = []; powerups = []; lasers = [];
-  ballLaunched = false;
-  buildLevel(state.levelIndex);
-  resetBallOnPaddle();
-}
-function resetBallOnPaddle() {
-  balls = [{ x: paddle.x + paddle.w/2, y: paddle.y - BALL_R - 2, vx: 0, vy: 0, r: BALL_R, stuck: true }];
-  ballTrail = [];
-}
-function launchBall() {
-  if (!balls.length) return;
-  const b = balls[0];
-  b.stuck = false;
-  const angle = rand(-Math.PI * 0.78, -Math.PI * 0.22);
-  const speed = 380;
-  b.vx = Math.cos(angle) * speed;
-  b.vy = Math.sin(angle) * speed;
-  ballLaunched = true;
-  sfx.hit();
-}
-function pauseGame() { if (state.mode === "playing") { state.mode = "paused"; showOverlay("pauseMenu"); } }
-function resumeGame() { state.mode = "playing"; showOverlay(null); sfx.click(); }
-function quitToMenu() { state.mode = "menu"; showOverlay("mainMenu"); refreshMenuStats(); }
-function nextLevel() {
-  state.levelIndex++;
-  if (state.levelIndex >= LEVELS.length) {
-    state.levelIndex = LEVELS.length - 1; state.mode = "gameover"; finalizeGame(true); return;
-  }
-  store.unlockedLevel = Math.max(store.unlockedLevel, state.levelIndex);
-  saveStore();
-  beginLevel(); state.mode = "playing"; showOverlay(null);
-}
-function loseLife() {
-  state.lives--; state.combo = 0; sfx.lose(); vibrate(120);
-  if (state.lives <= 0) { state.mode = "gameover"; finalizeGame(false); }
-  else { resetBallOnPaddle(); ballLaunched = false; state.shake = 12; }
-}
-function finalizeGame(victory) {
-  if (state.score > store.bestScore) store.bestScore = state.score;
-  store.lastScore = state.score; saveStore();
-  document.getElementById("goTag").textContent = victory ? "YOU WIN" : "GAME OVER";
-  document.getElementById("goTitle").textContent = victory ? "通关达成！" : "挑战结束";
-  document.getElementById("goScore").textContent = state.score;
-  document.getElementById("goLevel").textContent = (state.levelIndex + 1) + " / " + LEVELS.length;
-  document.getElementById("goBest").textContent = store.bestScore;
-  showOverlay("gameOver");
-  if (victory) sfx.win(); else sfx.lose();
-}
-function levelClear() {
-  const bonus = state.lives * 200 + (state.levelIndex + 1) * 100;
-  state.score += bonus; state.combo = 0;
-  if (state.score > store.bestScore) store.bestScore = state.score;
-  store.unlockedLevel = Math.max(store.unlockedLevel, state.levelIndex + 1);
-  saveStore();
-  sfx.win(); vibrate(60); state.shake = 8;
-  document.getElementById("lcTitle").textContent = `第 ${state.levelIndex + 1} 关 · ${LEVELS[state.levelIndex].name}`;
-  document.getElementById("lcSub").textContent = state.levelIndex + 1 >= LEVELS.length ? "这是最后一关，准备好迎接终极挑战！" : "准备进入下一关";
-  document.getElementById("lcScore").textContent = state.score;
-  document.getElementById("lcBonus").textContent = "+" + bonus;
-  document.getElementById("lcLives").textContent = state.lives;
-  state.mode = "levelclear"; showOverlay("levelClear");
-}
-
-function update(dt) {
-  state.time += dt;
-  for (const p of bgParticles) {
-    p.x += p.vx * dt; p.y += p.vy * dt;
-    if (p.x < 0) p.x += GW; if (p.x > GW) p.x -= GW;
-    if (p.y < 0) p.y += GH; if (p.y > GH) p.y -= GH;
-  }
-  if (state.mode !== "playing") return;
-
-  state.shake = Math.max(0, state.shake - dt * 40);
-  if (state.comboTimer > 0) { state.comboTimer -= dt; if (state.comboTimer <= 0) state.combo = 0; }
-  if (state.slowTimer > 0) state.slowTimer -= dt;
-  if (state.throughTimer > 0) state.throughTimer -= dt;
-  if (state.laserTimer > 0) state.laserTimer -= dt;
-  if (state.laserCooldown > 0) state.laserCooldown -= dt;
-
-  // Paddle movement
-  let target = input.mouseX;
-  if (input.keys.has("ArrowLeft") || input.keys.has("a") || input.keys.has("A")) target -= 220 * dt * 6;
-  if (input.keys.has("ArrowRight") || input.keys.has("d") || input.keys.has("D")) target += 220 * dt * 6;
-  const desiredX = clamp(target - paddle.w/2, 0, GW - paddle.w);
-  paddle.x = paddle.x + (desiredX - paddle.x) * Math.min(1, dt * 18);
-
-  // Trail
-  for (const b of balls) ballTrail.push({ x: b.x, y: b.y, life: 0.18 });
-  for (let i = ballTrail.length - 1; i >= 0; i--) { ballTrail[i].life -= dt; if (ballTrail[i].life <= 0) ballTrail.splice(i, 1); }
-
-  // Lasers
-  if (state.laserTimer > 0 && state.laserCooldown <= 0) {
-    lasers.push({ x: paddle.x + 8, y: paddle.y - 8, w: 3, h: 14, vy: -620 });
-    lasers.push({ x: paddle.x + paddle.w - 11, y: paddle.y - 8, w: 3, h: 14, vy: -620 });
-    state.laserCooldown = 0.22; sfx.shoot();
-  }
-  for (let i = lasers.length - 1; i >= 0; i--) {
-    const l = lasers[i];
-    l.y += l.vy * dt;
-    if (l.y + l.h < 0) { lasers.splice(i, 1); continue; }
-    for (const bk of bricks) {
-      if (bk.hits === Infinity) continue;
-      if (rectsOverlap({ x: l.x, y: l.y, w: l.w, h: l.h }, bk)) {
-        damageBrick(bk, l.x + l.w/2, l.y); lasers.splice(i, 1); break;
+  <script>
+    const GAMES = [
+      {
+        id: "neon-brick-breaker",
+        title: "霓虹打砖块",
+        titleEn: "Neon Brick Breaker",
+        desc: "8 关 × 6 种道具 × 连击系统。鼠标 / 触屏 / 键盘都能玩，HD 渲染。",
+        accent: "#00f0ff",
+        gradient: ["#00f0ff", "#ff5af7"],
+        tags: ["经典", "休闲", "8 关"],
+        badge: { text: "PLAY", kind: "" },
+        art: "bricks"
+      },
+      {
+        id: "shootit",
+        title: "暗夜战机",
+        titleEn: "Neon Fighter",
+        desc: "经典纵版卷轴射击 — 躲避弹幕，击落敌机，挑战最高分。",
+        accent: "#ff8b3a",
+        gradient: ["#ff8b3a", "#ff2d75"],
+        tags: ["射击", "街机", "弹幕"],
+        badge: { text: "PLAY", kind: "new" },
+        art: "plane"
       }
-    }
-  }
+    ];
 
-  // Balls
-  for (let i = balls.length - 1; i >= 0; i--) {
-    const b = balls[i];
-    if (b.stuck) { b.x = paddle.x + paddle.w/2; b.y = paddle.y - BALL_R - 2; continue; }
-    const slowFactor = state.slowTimer > 0 ? 0.55 : 1;
-    b.x += b.vx * dt * slowFactor; b.y += b.vy * dt * slowFactor;
-    if (b.x - b.r < 0) { b.x = b.r; b.vx = Math.abs(b.vx); sfx.hit(); }
-    if (b.x + b.r > GW) { b.x = GW - b.r; b.vx = -Math.abs(b.vx); sfx.hit(); }
-    if (b.y - b.r < 0) { b.y = b.r; b.vy = Math.abs(b.vy); sfx.hit(); }
-    if (b.y - b.r > GH) { balls.splice(i, 1); continue; }
-    // paddle
-    const p = paddle;
-    if (b.vy > 0 && b.x > p.x - b.r && b.x < p.x + p.w + b.r && b.y + b.r > p.y && b.y - b.r < p.y + p.h) {
-      b.y = p.y - b.r - 0.1;
-      const hit = (b.x - (p.x + p.w/2)) / (p.w/2);
-      const speed = Math.min(620, Math.hypot(b.vx, b.vy) * 1.02 + 6);
-      const angle = hit * (Math.PI * 0.34);
-      b.vx = Math.sin(angle) * speed; b.vy = -Math.abs(Math.cos(angle) * speed);
-      sfx.hit(); burst(b.x, p.y, COLORS.paddle, 6, 120, 0.4, 2);
-    }
-    // bricks
-    for (const bk of bricks) {
-      if (rectsOverlap({ x: b.x - b.r, y: b.y - b.r, w: b.r*2, h: b.r*2 }, bk)) {
-        if (bk.hits === Infinity) {
-          if (Math.abs(b.vx) > Math.abs(b.vy)) b.vx = -b.vx; else b.vy = -b.vy;
-          sfx.metal(); break;
-        }
-        if (state.throughTimer > 0) { damageBrick(bk, b.x, b.y); break; }
-        const prevX = b.x - b.vx * dt * slowFactor;
-        const prevY = b.y - b.vy * dt * slowFactor;
-        const fromLeft  = prevX + b.r <= bk.x;
-        const fromRight = prevX - b.r >= bk.x + bk.w;
-        const fromTop   = prevY + b.r <= bk.y;
-        const fromBot   = prevY - b.r >= bk.y + bk.h;
-        if (fromLeft || fromRight) b.vx = -b.vx;
-        else if (fromTop || fromBot) b.vy = -b.vy;
-        else b.vy = -b.vy;
-        damageBrick(bk, b.x, b.y); break;
-      }
-    }
-  }
-  if (balls.length === 0) loseLife();
+    const SVG_ART = {
+      bricks: `<svg viewBox="0 0 280 120" xmlns="http://www.w3.org/2000/svg">
+        <g>
+          <rect x="20"  y="14" width="50" height="16" rx="3" fill="rgba(255,255,255,0.95)"/>
+          <rect x="74"  y="14" width="50" height="16" rx="3" fill="rgba(255,255,255,0.78)"/>
+          <rect x="128" y="14" width="50" height="16" rx="3" fill="rgba(255,255,255,0.92)"/>
+          <rect x="182" y="14" width="50" height="16" rx="3" fill="rgba(255,255,255,0.7)"/>
+          <rect x="236" y="14" width="50" height="16" rx="3" fill="rgba(255,255,255,0.88)"/>
+          <rect x="47"  y="34" width="50" height="16" rx="3" fill="rgba(255,255,255,0.65)"/>
+          <rect x="101" y="34" width="50" height="16" rx="3" fill="rgba(255,255,255,0.85)"/>
+          <rect x="155" y="34" width="50" height="16" rx="3" fill="rgba(255,255,255,0.72)"/>
+          <rect x="209" y="34" width="50" height="16" rx="3" fill="rgba(255,255,255,0.85)"/>
+          <rect x="74"  y="54" width="50" height="16" rx="3" fill="rgba(255,255,255,0.6)"/>
+          <rect x="128" y="54" width="50" height="16" rx="3" fill="rgba(255,255,255,0.88)"/>
+          <rect x="182" y="54" width="50" height="16" rx="3" fill="rgba(255,255,255,0.68)"/>
+          <circle cx="140" cy="92" r="6" fill="#fff"/>
+          <rect x="100" y="98" width="80" height="6" rx="3" fill="#fff" opacity="0.92"/>
+        </g>
+      </svg>`,
+      plane: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+        <g>
+          <polygon points="100,22 110,72 148,86 148,96 110,92 110,108 148,116 100,106 52,116 90,108 90,92 52,96 52,86 90,72"
+                   fill="rgba(255,255,255,0.95)" stroke="rgba(0,0,0,0.4)" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="100" cy="72" r="4.5" fill="rgba(0,0,0,0.5)"/>
+          <line x1="30" y1="60" x2="170" y2="60" stroke="rgba(255,255,255,0.35)" stroke-width="1" stroke-dasharray="3 5"/>
+        </g>
+      </svg>`
+    };
 
-  // Power-ups
-  for (let i = powerups.length - 1; i >= 0; i--) {
-    const p = powerups[i]; p.time += dt; p.y += p.vy * dt;
-    if (p.y > GH + 40) { powerups.splice(i, 1); continue; }
-    const pad = paddle;
-    if (p.x > pad.x - 6 && p.x < pad.x + pad.w + 6 && p.y + p.h*0.5 > pad.y && p.y < pad.y + pad.h + 18) {
-      applyPowerup(p.type); burst(p.x, p.y, p.type.color, 18, 180, 0.6, 2.5);
-      powerups.splice(i, 1); sfx.power(); continue;
-    }
-  }
-
-  // Particles
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const pa = particles[i]; pa.life -= dt;
-    if (pa.life <= 0) { particles.splice(i, 1); continue; }
-    pa.x += pa.vx * dt; pa.y += pa.vy * dt;
-    pa.vx *= 0.985; pa.vy *= 0.985; pa.vy += 60 * dt;
-  }
-
-  const destructible = bricks.filter(b => b.hits !== Infinity).length;
-  if (destructible === 0) levelClear();
-}
-
-function damageBrick(bk, hx, hy) {
-  if (bk.hits === Infinity) return;
-  bk.hits--;
-  state.combo++; state.comboTimer = 1.6;
-  const mult = Math.min(8, 1 + Math.floor(state.combo / 5) * 0.5);
-  const baseScore = bk.type === "tough" ? 80 : bk.type === "strong" ? 50 : 30;
-  state.score += Math.round(baseScore * mult);
-  sfx.combo(Math.min(8, state.combo));
-  if (bk.hits <= 0) {
-    const c = bk.color || (bk.type === "strong" ? "#d0d6e0" : bk.type === "tough" ? "#ffd86b" : "#aaa");
-    burst(bk.x + bk.w/2, bk.y + bk.h/2, c, 16, 220, 0.7, 3);
-    state.shake = Math.max(state.shake, bk.type === "tough" ? 6 : 3);
-    spawnPowerup(bk.x + bk.w/2, bk.y + bk.h/2);
-    if (state.combo > 0 && state.combo % 8 === 0) toast("连击！", "x" + state.combo);
-    const idx = bricks.indexOf(bk); if (idx >= 0) bricks.splice(idx, 1);
-  } else {
-    burst(bk.x + bk.w/2, bk.y + bk.h/2, bk.color || "#fff", 4, 100, 0.3, 1.6);
-  }
-}
-
-function applyPowerup(type) {
-  toast(type.desc, type.label);
-  switch (type.id) {
-    case "E": paddle.w = Math.min(220, paddle.w + 28); break;
-    case "S": paddle.w = Math.max(60, paddle.w - 22); break;
-    case "M": {
-      const existing = balls.slice();
-      for (const b of existing) {
-        if (b.stuck) continue;
-        const speed = Math.hypot(b.vx, b.vy) || 380;
-        for (const off of [-0.35, 0.35]) {
-          const a = Math.atan2(b.vy, b.vx) + off;
-          balls.push({ x: b.x, y: b.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r: BALL_R, stuck: false });
-        }
-      }
-      if (balls.length === 0) resetBallOnPaddle();
-      break;
-    }
-    case "B": state.slowTimer = 8; break;
-    case "T": state.throughTimer = 8; break;
-    case "L": state.laserTimer = 10; break;
-  }
-}
-
-function roundRect(x, y, w, h, r) {
-  if (w < 2*r) r = w/2; if (h < 2*r) r = h/2;
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.arcTo(x+w, y, x+w, y+h, r);
-  ctx.arcTo(x+w, y+h, x, y+h, r);
-  ctx.arcTo(x, y+h, x, y, r);
-  ctx.arcTo(x, y, x+w, y, r);
-  ctx.closePath();
-}
-function shade(hex, p) {
-  const c = hex.replace("#", "");
-  const r = parseInt(c.substring(0,2), 16), g = parseInt(c.substring(2,4), 16), b = parseInt(c.substring(4,6), 16);
-  const f = p < 0 ? 1 + p : 1 - p;
-  const t = p < 0 ? 0 : 255;
-  const rr = Math.round((t - r) * f + r), gg = Math.round((t - g) * f + g), bb = Math.round((t - b) * f + b);
-  return "#" + [rr,gg,bb].map(v => v.toString(16).padStart(2,"0")).join("");
-}
-
-function drawBackground() {
-  const g = ctx.createLinearGradient(0, 0, 0, GH);
-  g.addColorStop(0, COLORS.bgTop); g.addColorStop(1, COLORS.bgBot);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, GW, GH);
-  ctx.strokeStyle = COLORS.grid; ctx.lineWidth = 1;
-  for (let x = 0; x < GW; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, GH); ctx.stroke(); }
-  for (let y = 0; y < GH; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(GW, y); ctx.stroke(); }
-  for (const p of bgParticles) {
-    ctx.fillStyle = p.c + "0.4)";
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-  }
-}
-
-function drawBricks() {
-  for (const b of bricks) {
-    let fillA, fillB;
-    if (b.type === "steel") { fillA = COLORS.steel[0]; fillB = COLORS.steel[1]; }
-    else if (b.type === "strong") { fillA = COLORS.silver[0]; fillB = COLORS.silver[1]; }
-    else if (b.type === "tough") { fillA = COLORS.gold[0]; fillB = COLORS.gold[1]; }
-    else { fillA = b.color; fillB = shade(b.color, -0.4); }
-    const ratio = b.hits === Infinity ? 1 : (b.maxHits - b.hits) / b.maxHits;
-    const dmg = Math.min(0.6, ratio * 0.4);
-    ctx.save();
-    if (b.type === "steel") { ctx.shadowBlur = 0; }
-    else { ctx.shadowBlur = 8; ctx.shadowColor = fillA; }
-    const grad = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.h);
-    grad.addColorStop(0, fillA); grad.addColorStop(1, fillB);
-    ctx.fillStyle = grad;
-    roundRect(b.x, b.y, b.w, b.h, 4); ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "rgba(255,255,255," + (0.18 - dmg) + ")";
-    roundRect(b.x + 3, b.y + 2, b.w - 6, (b.h - 4) * 0.4, 2); ctx.fill();
-    if (b.hits !== Infinity && b.hits > 1) {
-      ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.font = "bold 11px ui-monospace, monospace";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText("x" + b.hits, b.x + b.w/2, b.y + b.h/2 + 1);
-    }
-    ctx.restore();
-  }
-}
-
-function drawPaddle() {
-  ctx.save();
-  ctx.shadowBlur = 18; ctx.shadowColor = COLORS.paddleGlow;
-  const grad = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.h);
-  grad.addColorStop(0, "#7ff7ff"); grad.addColorStop(1, "#0090d8");
-  ctx.fillStyle = grad;
-  roundRect(paddle.x, paddle.y, paddle.w, paddle.h, paddle.h/2); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "rgba(255,255,255,0.6)";
-  roundRect(paddle.x + 6, paddle.y + 3, paddle.w - 12, 3, 1.5); ctx.fill();
-  if (state.laserTimer > 0) {
-    ctx.fillStyle = "#ff5a5a"; ctx.shadowBlur = 12; ctx.shadowColor = "#ff5a5a";
-    ctx.fillRect(paddle.x + 8, paddle.y - 8, 4, 8);
-    ctx.fillRect(paddle.x + paddle.w - 12, paddle.y - 8, 4, 8);
-  }
-  ctx.restore();
-}
-
-function drawBalls() {
-  for (const t of ballTrail) {
-    const a = clamp(t.life / 0.18, 0, 1) * 0.4;
-    ctx.fillStyle = `rgba(0, 240, 255, ${a})`;
-    ctx.beginPath(); ctx.arc(t.x, t.y, BALL_R * 0.9, 0, Math.PI * 2); ctx.fill();
-  }
-  for (const b of balls) {
-    ctx.save();
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = state.throughTimer > 0 ? "#ff8bff" : COLORS.ballGlow;
-    ctx.fillStyle = state.throughTimer > 0 ? "#ffd0ff" : COLORS.ball;
-    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.beginPath(); ctx.arc(b.x - 2, b.y - 2, b.r * 0.35, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  }
-}
-
-function drawPowerups() {
-  for (const p of powerups) {
-    const pulse = 1 + Math.sin(p.time * 6) * 0.06;
-    ctx.save();
-    ctx.translate(p.x, p.y); ctx.scale(pulse, pulse);
-    ctx.shadowBlur = 14; ctx.shadowColor = p.type.color;
-    const grad = ctx.createLinearGradient(-14, -14, 14, 14);
-    grad.addColorStop(0, p.type.color); grad.addColorStop(1, shade(p.type.color, -0.5));
-    ctx.fillStyle = grad;
-    roundRect(-14, -14, 28, 28, 7); ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.font = "bold 16px sans-serif";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(p.type.label, 0, 1);
-    ctx.restore();
-  }
-}
-
-function drawLasers() {
-  for (const l of lasers) {
-    ctx.save();
-    ctx.shadowBlur = 12; ctx.shadowColor = "#ff5a5a";
-    ctx.fillStyle = "#ffd1d1";
-    ctx.fillRect(l.x, l.y, l.w, l.h);
-    ctx.restore();
-  }
-}
-
-function drawParticles() {
-  for (const p of particles) {
-    const a = clamp(p.life / p.maxLife, 0, 1);
-    ctx.fillStyle = p.color; ctx.globalAlpha = a;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.size * a, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-}
-
-function drawHUD() {
-  ctx.save();
-  ctx.textBaseline = "top";
-  ctx.shadowBlur = 8; ctx.shadowColor = "rgba(255, 90, 247, 0.6)";
-  ctx.fillStyle = "#ff5af7"; ctx.textAlign = "left";
-  ctx.font = "bold 12px -apple-system, sans-serif";
-  ctx.fillText("SCORE", 20, 18);
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#fff"; ctx.font = "bold 22px -apple-system, sans-serif";
-  ctx.fillText(state.score.toLocaleString(), 20, 36);
-
-  ctx.textAlign = "center";
-  ctx.shadowBlur = 8; ctx.shadowColor = "rgba(0, 240, 255, 0.6)";
-  ctx.fillStyle = "#5ff0ff"; ctx.font = "bold 11px -apple-system, sans-serif";
-  ctx.fillText("LEVEL " + (state.levelIndex + 1) + " · " + LEVELS[state.levelIndex].name.toUpperCase(), GW/2, 18);
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#fff"; ctx.font = "bold 20px -apple-system, sans-serif";
-  ctx.fillText("第 " + (state.levelIndex + 1) + " / " + LEVELS.length + " 关", GW/2, 36);
-
-  ctx.textAlign = "right";
-  ctx.shadowBlur = 8; ctx.shadowColor = "rgba(255, 216, 107, 0.6)";
-  ctx.fillStyle = "#ffd86b"; ctx.font = "bold 11px -apple-system, sans-serif";
-  ctx.fillText("BEST " + store.bestScore, GW - 20, 18);
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#fff"; ctx.font = "bold 22px -apple-system, sans-serif";
-  ctx.fillText("❤".repeat(state.lives), GW - 20, 36);
-
-  if (state.combo > 1 && state.comboTimer > 0) {
-    const mult = Math.min(8, 1 + Math.floor(state.combo / 5) * 0.5);
-    ctx.textAlign = "center";
-    ctx.shadowBlur = 14; ctx.shadowColor = "rgba(255, 90, 247, 0.7)";
-    ctx.fillStyle = "#ff5af7"; ctx.font = "bold 16px -apple-system, sans-serif";
-    ctx.fillText("COMBO x" + state.combo + "  ·  SCORE x" + mult.toFixed(1), GW/2, 68);
-    ctx.shadowBlur = 0;
-  }
-  ctx.textAlign = "center";
-  ctx.fillStyle = "rgba(255,255,255,0.55)";
-  ctx.font = "12px -apple-system, sans-serif";
-  ctx.fillText(!ballLaunched ? "点击 / 触屏 / 空格 — 发射球" : "P 暂停  ·  M 静音", GW/2, GH - 18);
-  ctx.restore();
-}
-
-function drawActiveEffects() {
-  if (state.slowTimer > 0) { ctx.save(); ctx.fillStyle = "rgba(90, 185, 255, 0.18)"; ctx.fillRect(0, 0, GW, GH); ctx.restore(); }
-  if (state.throughTimer > 0) { ctx.save(); ctx.fillStyle = "rgba(255, 139, 255, 0.10)"; ctx.fillRect(0, 0, GW, GH); ctx.restore(); }
-}
-
-function render() {
-  ctx.save();
-  if (state.shake > 0) ctx.translate(rand(-state.shake, state.shake), rand(-state.shake, state.shake));
-  drawBackground();
-  if (state.mode === "playing" || state.mode === "paused" || state.mode === "levelclear" || state.mode === "gameover") {
-    drawBricks(); drawPowerups(); drawLasers(); drawPaddle(); drawBalls(); drawParticles(); drawActiveEffects(); drawHUD();
-  } else if (paddle) { drawPaddle(); }
-  ctx.restore();
-}
-
-let lastT = performance.now();
-function loop(now) {
-  const dt = Math.min(0.033, (now - lastT) / 1000);
-  lastT = now;
-  update(dt);
-  render();
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-
-function showOverlay(id) {
-  document.querySelectorAll(".overlay").forEach(o => o.classList.remove("show"));
-  if (id) document.getElementById(id).classList.add("show");
-}
-function refreshMenuStats() {
-  document.getElementById("menuBest").textContent = store.bestScore.toLocaleString();
-  document.getElementById("menuLevel").textContent = Math.min(LEVELS.length, (store.unlockedLevel || 0) + 1);
-  document.getElementById("menuLast").textContent = store.lastScore.toLocaleString();
-}
-function refreshSettingsUI() {
-  document.getElementById("swSound").classList.toggle("on", !!store.sound);
-  document.getElementById("swHaptics").classList.toggle("on", !!store.haptics);
-  document.getElementById("swParticles").classList.toggle("on", !!store.particles);
-}
-refreshMenuStats(); refreshSettingsUI();
-
-document.getElementById("btnPlay").addEventListener("click", () => { ensureAudio(); startGame(); });
-document.getElementById("btnHelp").addEventListener("click", () => showOverlay("helpMenu"));
-document.getElementById("btnHelpBack").addEventListener("click", () => showOverlay("mainMenu"));
-document.getElementById("btnSettings").addEventListener("click", () => showOverlay("settingsMenu"));
-document.getElementById("btnSettingsBack").addEventListener("click", () => { saveStore(); showOverlay("mainMenu"); });
-document.getElementById("btnReset").addEventListener("click", () => {
-  if (confirm("确定要清空最高分和进度吗？")) {
-    localStorage.removeItem(STORE_KEY); store = loadStore();
-    refreshMenuStats(); refreshSettingsUI(); toast("已重置进度", "OK");
-  }
-});
-document.getElementById("btnResume").addEventListener("click", resumeGame);
-document.getElementById("btnRestart").addEventListener("click", startGame);
-document.getElementById("btnQuit").addEventListener("click", quitToMenu);
-document.getElementById("btnGoRetry").addEventListener("click", startGame);
-document.getElementById("btnGoMenu").addEventListener("click", quitToMenu);
-document.getElementById("btnLcNext").addEventListener("click", nextLevel);
-
-document.getElementById("toggleSound").addEventListener("click", () => { store.sound = !store.sound; saveStore(); refreshSettingsUI(); sfx.click(); });
-document.getElementById("toggleHaptics").addEventListener("click", () => { store.haptics = !store.haptics; saveStore(); refreshSettingsUI(); if (store.haptics) vibrate(20); });
-document.getElementById("toggleParticles").addEventListener("click", () => { store.particles = !store.particles; saveStore(); refreshSettingsUI(); });
-
-window.addEventListener("pointerdown", () => ensureAudio(), { once: true });
-</script>
+    const grid = document.getElementById("grid");
+    GAMES.forEach(g => {
+      const card = document.createElement("a");
+      card.className = "card";
+      card.href = g.id + "/";
+      card.style.setProperty("--accent", g.accent);
+      card.style.setProperty("--a", g.gradient[0]);
+      card.style.setProperty("--b", g.gradient[1]);
+      card.setAttribute("aria-label", g.title + " " + g.titleEn);
+      card.innerHTML = `
+        <div class="cover">
+          <div class="art">${SVG_ART[g.art] || ""}</div>
+          <div class="badge ${g.badge.kind}">${g.badge.text}</div>
+        </div>
+        <div class="body">
+          <div class="titles">
+            <h2>${g.title}</h2>
+            <div class="en">${g.titleEn}</div>
+          </div>
+          <p>${g.desc}</p>
+          <div class="tags">${g.tags.map(t => `<span>${t}</span>`).join("")}</div>
+          <div class="cta">开始游戏 ▶</div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  </script>
 </body>
 </html>
-

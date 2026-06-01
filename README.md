@@ -1,31 +1,48 @@
-﻿# 霓虹打砖块 · Neon Brick Breaker
+﻿# 霓虹游戏厅 · Neon Arcade
 
-A polished single-file HTML5 brick breaker with a neon-synthwave aesthetic.
-8 hand-designed levels, 6 power-ups, combo scoring, Web-Audio SFX, and full mobile / keyboard support.
+A small collection of polished single-file (or near-single-file) HTML5 games with a unified neon-synthwave aesthetic.
+Lives at: <https://show.hackercd.cn/>
 
-## 🎮 Play
+## 🎮 Games
 
-https://hackercds.github.io/HTML-KING/
+| Game | Folder | Description |
+|------|--------|-------------|
+| **霓虹打砖块** Neon Brick Breaker | [`neon-brick-breaker/`](neon-brick-breaker/) | 8 关经典打砖块 × 6 种道具 × 连击系统 |
+| **暗夜战机** Neon Fighter | [`shootit/`](shootit/) | 经典纵版卷轴射击 — 弹幕 / 敌机 / 最高分挑战 |
 
-## ✨ Features
+## ✨ Design Principles
 
-- **8 levels** — 序章 / 三角阵 / 菱形之舞 / 霓虹心 / 堡垒 / 星星坠落 / 螺旋回廊 / 终章
-- **6 power-ups** — 挡板变长 / 变短 / 多球 / 慢球 / 穿透 / 激光炮
-- **Combo system** — 连击触发分数倍率
-- **Particle FX** — 砖块爆炸、屏幕震动、拖尾光效
-- **Synthesized audio** — 用 Web Audio API 现场生成，零外部资源
-- **Touch & keyboard** — 鼠标、触屏、方向键 / `WASD`、空格发射、`P` 暂停、`M` 静音
-- **Persistent state** — 最高分、解锁进度、设置都存 localStorage
+- **Single-file or self-contained folders** — each game is one `index.html` (plus optional sibling `*.js` / `*.css`)
+- **No build step, no dependencies** — pure HTML + vanilla JS + Canvas 2D
+- **HD rendering** — uses `devicePixelRatio` for crisp output on Retina / HiDPI displays
+- **Mobile-first** — touch, pointer, and keyboard all supported; responsive layout
+- **Persistent state** — high scores and settings saved to `localStorage`
+- **Shared aesthetic** — same neon palette, glow effects, and animation language across games
 
-## 🎯 Controls
+## 🚀 Deploy
 
-| Action      | Mouse / Touch | Keyboard             |
-|-------------|---------------|----------------------|
-| Move paddle | Drag          | `←` `→` / `A` `D`    |
-| Launch ball | Click / tap   | `Space` / `Enter`    |
-| Pause       |               | `P` / `Esc`          |
-| Mute        |               | `M`                  |
+GitHub Pages from `main` branch, root. Custom domain configured via `CNAME` (`show.hackercd.cn`).
+
+## ➕ Add a New Game
+
+1. Create a new folder at the repo root, e.g. `my-game/`
+2. Put `index.html` inside (you can also reference sibling `game.js`, `styles.css`, etc.)
+3. Add an entry to the `GAMES` array in [`index.html`](index.html):
+   ```js
+   {
+     id: "my-game",
+     title: "我的游戏",
+     titleEn: "My Game",
+     desc: "一句话描述。",
+     accent: "#00f0ff",
+     gradient: ["#00f0ff", "#ff5af7"],
+     tags: ["标签1", "标签2"],
+     badge: { text: "PLAY", kind: "" },
+     art: "bricks"  // key in the SVG_ART object, or add your own
+   }
+   ```
+4. Commit & push — the portal updates automatically.
 
 ## 🛠 Tech
 
-Single `index.html` · vanilla JS + Canvas 2D · no build step · no dependencies · 41 KB.
+Plain HTML + vanilla JS + Canvas 2D + Web Audio API.
