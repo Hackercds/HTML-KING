@@ -11,6 +11,34 @@ const HEIGHT = 720;
 // === CANVAS SETUP ===
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+let renderScale = 1;
+let renderDpr = 1;
+
+function getRenderDpr() {
+  return Math.max(1, window.devicePixelRatio || 1);
+}
+
+function resizeCanvas() {
+  const framePadding = 6;
+  const margin = window.innerWidth <= 1000 ? 12 : 40;
+  const maxW = Math.max(320, window.innerWidth - margin - framePadding);
+  const maxH = Math.max(240, window.innerHeight - margin - framePadding);
+
+  renderScale = Math.min(maxW / WIDTH, maxH / HEIGHT);
+  renderDpr = getRenderDpr();
+
+  const displayW = Math.floor(WIDTH * renderScale);
+  const displayH = Math.floor(HEIGHT * renderScale);
+  canvas.style.width = displayW + 'px';
+  canvas.style.height = displayH + 'px';
+  canvas.width = Math.max(1, Math.floor(displayW * renderDpr));
+  canvas.height = Math.max(1, Math.floor(displayH * renderDpr));
+  ctx.setTransform(renderScale * renderDpr, 0, 0, renderScale * renderDpr, 0, 0);
+}
+
+function resetRenderTransform() {
+  ctx.setTransform(renderScale * renderDpr, 0, 0, renderScale * renderDpr, 0, 0);
+}
 
 // === GAME STATE ===
 let state = 'menu';                 // 'menu' | 'playing' | 'paused' | 'gameover'
@@ -59,6 +87,8 @@ canvas.addEventListener('click', () => {
   initAudio();
   if (state === 'menu' || state === 'gameover') startGame();
 });
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
 window.addEventListener('blur', () => {
   if (state === 'playing') state = 'paused';
 });
@@ -1228,6 +1258,7 @@ function update(dt) {
 
 // ============== DRAW ==============
 function draw() {
+  resetRenderTransform();
   if (screenShake > 0) {
     ctx.save();
     ctx.translate(
@@ -1580,8 +1611,7 @@ function gameLoop(timestamp) {
 
 // ============== INIT ==============
 function init() {
-  canvas.width = WIDTH;
-  canvas.height = HEIGHT;
+  resizeCanvas();
   stars = [];
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 100; j++) {

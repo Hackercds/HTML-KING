@@ -59,14 +59,17 @@ body::before {
   border-radius: 4px;
   background: #000;
   cursor: crosshair;
-  max-width: calc(100vw - 40px);
-  max-height: calc(100vh - 40px);
-  width: auto;
-  height: auto;
+  width: 960px;
+  height: 720px;
 }
 
 @media (max-width: 1000px) {
+  #game-wrap {
+    padding: 0;
+    border-radius: 0;
+  }
+
   #game {
-    max-width: 95vw;
+    border-radius: 0;
   }
 }
