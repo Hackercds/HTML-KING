@@ -59,6 +59,24 @@ let enemySpawnTimer, levelTimer;
 
 // === INPUT ===
 const keys = {};
+// Pointer-based input: tracks the latest pointer position in canvas coordinates.
+// When a touch/pointer is active and inside the canvas, keyboard movement is replaced
+// with pointer-following movement. Keyboard input still works for desktop users.
+const pointer = { active: false, x: 0, y: 0, inside: false };
+
+function clientToGame(clientX, clientY) {
+  const r = canvas.getBoundingClientRect();
+  if (r.width === 0 || r.height === 0) return { x: 0, y: 0 };
+  return {
+    x: clamp((clientX - r.left) * (WIDTH / r.width), 0, WIDTH),
+    y: clamp((clientY - r.top)  * (HEIGHT / r.height), 0, HEIGHT),
+  };
+}
+
+function isCoarsePointer() {
+  return window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+}
+
 window.addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
   if (!keys[k]) keys[k] = true;            // edge trigger prevention for some keys
@@ -83,12 +101,162 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keyup', (e) => {
   keys[e.key.toLowerCase()] = false;
 });
-canvas.addEventListener('click', () => {
+
+// Mouse movement: track position even outside canvas to prevent "snapping back"
+canvas.addEventListener('mousemove', (e) => {
+  const p = clientToGame(e.clientX, e.clientY);
+  pointer.x = p.x; pointer.y = p.y;
+  pointer.active = true; pointer.inside = true;
+});
+canvas.addEventListener('mouseleave', () => {
+  pointer.inside = false;
+  // Keep pointer.active true so the player doesn't snap back; the player simply
+  // stops following the pointer. This is the "humanized" boundary behavior:
+  // leaving the canvas no longer yanks the ship.
+});
+canvas.addEventListener('mouseenter', () => {
+  pointer.inside = true;
+});
+canvas.addEventListener('mousedown', (e) => {
+  e.preventDefault();
   initAudio();
+  pointer.active = true;
   if (state === 'menu' || state === 'gameover') startGame();
 });
+
+// Touch / pointer events: unified handling so a single touch drags the ship
+// and tapping outside the canvas does not pan the page.
+function onPointerDown(e) {
+  e.preventDefault();
+  initAudio();
+  const t = e.touches ? e.touches[0] : e;
+  const p = clientToGame(t.clientX, t.clientY);
+  pointer.x = p.x; pointer.y = p.y;
+  pointer.active = true; pointer.inside = true;
+  if (state === 'menu' || state === 'gameover') startGame();
+}
+function onPointerMove(e) {
+  if (!pointer.active && !e.touches) return;
+  e.preventDefault();
+  const t = e.touches ? e.touches[0] : e;
+  const p = clientToGame(t.clientX, t.clientY);
+  pointer.x = p.x; pointer.y = p.y;
+  pointer.inside = true;
+}
+function onPointerUp(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  // Defer deactivation slightly: if a virtual button released the pointer,
+  // we want to keep movement off until next touch. But for canvas drag we
+  // also want to allow finger-up to stop dragging — handled by separate
+  // touchend listener that sets pointer.active = false only when the
+  // pointer wasn't on a virtual button.
+  if (!e || !e.touches || e.touches.length === 0) {
+    pointer.active = false;
+    pointer.inside = false;
+  }
+}
+canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+canvas.addEventListener('touchmove',  onPointerMove, { passive: false });
+canvas.addEventListener('touchend',   onPointerUp,   { passive: false });
+canvas.addEventListener('touchcancel',onPointerUp,   { passive: false });
+// Also handle pointer events for stylus / desktop pointer
+canvas.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'touch') return; // touch already handled
+  onPointerDown(e);
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (e.pointerType === 'touch') return;
+  if (!pointer.active) return;
+  onPointerMove(e);
+});
+canvas.addEventListener('pointerup', (e) => {
+  if (e.pointerType === 'touch') return;
+  onPointerUp(e);
+});
+
+// === TOUCH VIRTUAL BUTTONS ===
+// Map virtual button names to logical key names that the existing Player code
+// already understands. This lets one key system drive both keyboard and
+// virtual buttons without duplicating movement / fire logic.
+const TC_KEY_MAP = {
+  up:    'arrowup',
+  down:  'arrowdown',
+  left:  'arrowleft',
+  right: 'arrowright',
+  fire:  ' ',       // spacebar — also triggers shoot
+  bomb:  'shift',
+};
+
+function bindTouchButton(btn) {
+  const k = TC_KEY_MAP[btn.dataset.key];
+  if (!k) return;
+  const press = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    btn.classList.add('pressed');
+    keys[k] = true;
+  };
+  const release = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    btn.classList.remove('pressed');
+    keys[k] = false;
+  };
+  // Use both mouse and touch events so a single listener set works on every
+  // device. stopPropagation prevents the canvas pointerdown from also
+  // starting a drag.
+  btn.addEventListener('touchstart', press, { passive: false });
+  btn.addEventListener('touchend',   release, { passive: false });
+  btn.addEventListener('touchcancel',release, { passive: false });
+  btn.addEventListener('mousedown',  (e) => { e.preventDefault(); press(e); });
+  btn.addEventListener('mouseup',    release);
+  btn.addEventListener('mouseleave', release);
+  // Defensive: if a window-level mouseup happens (e.g. user dragged off the
+  // button and released over the canvas), still clear the pressed state.
+  window.addEventListener('mouseup', release);
+}
+
+document.querySelectorAll('#touch-controls [data-key]').forEach(bindTouchButton);
+
+// === ROTATE HINT (portrait → landscape suggestion) ===
+const rotateHint = document.getElementById('rotate-hint');
+let rotateHintDismissed = false;
+const rhContinue = document.getElementById('rh-continue');
+if (rhContinue) {
+  rhContinue.addEventListener('click', () => {
+    rotateHintDismissed = true;
+    rotateHint.classList.remove('show');
+  });
+}
+
+function isPortrait() {
+  // Use both viewport and orientation API. Some browsers report unreliable
+  // orientation.type, so the aspect ratio is the source of truth.
+  if (window.innerHeight > window.innerWidth) return true;
+  if (screen && screen.orientation && typeof screen.orientation.type === 'string') {
+    return /portrait/.test(screen.orientation.type);
+  }
+  return false;
+}
+
+function isMobile() {
+  // Only show rotate hint on actual mobile devices, not a narrow desktop window.
+  return isCoarsePointer() || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+}
+
+function updateRotateHint() {
+  if (rotateHintDismissed) return;
+  if (isMobile() && isPortrait()) {
+    rotateHint.classList.add('show');
+  } else {
+    rotateHint.classList.remove('show');
+  }
+}
+updateRotateHint();
+
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => { resizeCanvas(); updateRotateHint(); }, 200);
+});
 window.addEventListener('blur', () => {
   if (state === 'playing') state = 'paused';
 });
@@ -809,6 +977,27 @@ class Player {
     const maxV = this.speedBoost > 0 ? 620 : 420;
     let tvx = ax * maxV;
     let tvy = ay * maxV;
+
+    // Pointer follow: when a pointer is inside the canvas (mouse moved in,
+    // touch started, or virtual buttons are being used) we steer the ship
+    // toward the pointer position. Keyboard arrows take precedence and
+    // override the pointer each frame.
+    const keyboardActive = ax !== 0 || ay !== 0;
+    if (!keyboardActive && pointer.inside && pointer.active) {
+      const dx = pointer.x - this.x;
+      const dy = pointer.y - this.y;
+      // Dead-zone: only chase the pointer once it's noticeably off-center.
+      const DEAD = 2;
+      if (Math.abs(dx) > DEAD || Math.abs(dy) > DEAD) {
+        const len = Math.hypot(dx, dy) || 1;
+        const follow = Math.min(len, maxV);
+        tvx = (dx / len) * follow;
+        tvy = (dy / len) * follow;
+      } else {
+        tvx = 0; tvy = 0;
+      }
+    }
+
     const tlen = Math.hypot(tvx, tvy);
     if (tlen > maxV) { tvx = tvx / tlen * maxV; tvy = tvy / tlen * maxV; }
     const accel = 14;
@@ -816,6 +1005,10 @@ class Player {
     this.vy += (tvy - this.vy) * accel * dt;
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+    // Hard clamp: even if the pointer is held outside the canvas, the ship
+    // cannot fly past the play field. (Pointer positions are already clamped
+    // to [0, WIDTH] x [0, HEIGHT] in clientToGame, so this is a
+    // belt-and-suspenders guard.)
     this.x = clamp(this.x, this.w / 2, WIDTH - this.w / 2);
     this.y = clamp(this.y, this.h / 2, HEIGHT - this.h / 2);
 
@@ -830,10 +1023,12 @@ class Player {
     if (this.speedBoost > 0) this.speedBoost -= dt;
 
     this.shootCD -= dt;
+    // On coarse-pointer (mobile) we slightly slow the auto-fire cadence so a
+    // long-press on the fire button doesn't drown the screen in bullets.
     if (keys[' '] || keys['j'] || keys['z']) {
       if (this.shootCD <= 0) {
         this.shoot();
-        this.shootCD = 0.11;
+        this.shootCD = isCoarsePointer() ? 0.13 : 0.11;
       }
     }
 
@@ -1524,10 +1719,20 @@ function drawOverlay() {
     ctx.shadowColor = '#ffffff';
     ctx.shadowBlur = 5;
     ctx.fillStyle = '#cccccc';
-    ctx.fillText('WASD / 方向键     移动', WIDTH / 2, HEIGHT - 110);
-    ctx.fillText('SPACE / J / Z     射击', WIDTH / 2, HEIGHT - 90);
-    ctx.fillText('SHIFT / K / X     炸弹 (清屏)', WIDTH / 2, HEIGHT - 70);
-    ctx.fillText('P / ESC           暂停', WIDTH / 2, HEIGHT - 50);
+    if (isCoarsePointer()) {
+      // Mobile: emphasize touch controls, de-emphasize keyboard.
+      ctx.fillText('触屏拖动   移动战机', WIDTH / 2, HEIGHT - 130);
+      ctx.fillText('● 按钮     射击(按住连射)', WIDTH / 2, HEIGHT - 110);
+      ctx.fillText('◆ 按钮     炸弹 (清屏)', WIDTH / 2, HEIGHT - 90);
+      ctx.fillText('双指 / 方向键 也可控制战机', WIDTH / 2, HEIGHT - 70);
+      ctx.fillText('P / ESC     暂停', WIDTH / 2, HEIGHT - 50);
+    } else {
+      // Desktop / laptop: keyboard first, mouse as bonus.
+      ctx.fillText('WASD / 方向键 / 鼠标   移动', WIDTH / 2, HEIGHT - 130);
+      ctx.fillText('SPACE / J / Z          射击', WIDTH / 2, HEIGHT - 110);
+      ctx.fillText('SHIFT / K / X          炸弹 (清屏)', WIDTH / 2, HEIGHT - 90);
+      ctx.fillText('P / ESC                暂停', WIDTH / 2, HEIGHT - 70);
+    }
 
     if (highScore > 0) {
       ctx.font = 'bold 17px "Courier New", monospace';

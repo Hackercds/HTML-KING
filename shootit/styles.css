@@ -12,6 +12,9 @@ html, body {
   font-family: 'Courier New', 'Consolas', monospace;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 body {
@@ -22,6 +25,7 @@ body {
     radial-gradient(ellipse at 50% 40%, rgba(60, 0, 90, 0.5) 0%, rgba(0, 0, 0, 0.95) 70%),
     #000;
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
 }
 
@@ -61,6 +65,7 @@ body::before {
   cursor: crosshair;
   width: 960px;
   height: 720px;
+  touch-action: none;
 }
 
 @media (max-width: 1000px) {
@@ -72,4 +77,199 @@ body::before {
   #game {
     border-radius: 0;
   }
+}
+
+/* ============== 竖屏提示 ============== */
+#rotate-hint {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  padding: 32px 24px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at center, rgba(40, 0, 70, 0.95) 0%, rgba(0, 0, 0, 0.98) 70%),
+    #000;
+  color: #fff;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#rotate-hint.show { display: flex; }
+
+.rh-phone {
+  font-size: 96px;
+  line-height: 1;
+  animation: rhRotate 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.6));
+}
+
+@keyframes rhRotate {
+  0%, 100% { transform: rotate(-90deg); }
+  50%      { transform: rotate(0deg); }
+}
+
+.rh-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, #00f0ff, #ff00ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+}
+
+.rh-sub {
+  font-size: 14px;
+  color: #b6b4d4;
+  letter-spacing: 1px;
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+#rh-continue {
+  margin-top: 8px;
+  padding: 10px 22px;
+  background: transparent;
+  color: #8b8aa8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#rh-continue:hover, #rh-continue:active {
+  color: #00f0ff;
+  border-color: rgba(0, 240, 255, 0.5);
+  background: rgba(0, 240, 255, 0.08);
+}
+
+/* ============== 移动端虚拟按键 ============== */
+#touch-controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  #touch-controls { display: block; }
+}
+
+.tc-pad {
+  position: absolute;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  width: 180px;
+  height: 180px;
+  pointer-events: none;
+}
+
+.tc-btn {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(0, 240, 255, 0.12);
+  border: 2px solid rgba(0, 240, 255, 0.5);
+  color: rgba(0, 240, 255, 0.95);
+  font-size: 20px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background 0.08s, transform 0.08s;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  touch-action: none;
+}
+
+.tc-btn:active, .tc-btn.pressed {
+  background: rgba(0, 240, 255, 0.35);
+  transform: scale(0.92);
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.6);
+}
+
+.tc-up    { left: 62px;  top: 0;   }
+.tc-left  { left: 0;     top: 62px; }
+.tc-right { left: 124px; top: 62px; }
+.tc-down  { left: 62px;  top: 124px; }
+
+.tc-actions {
+  position: absolute;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(28px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.tc-fire, .tc-bomb {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 32px;
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.08s, box-shadow 0.08s;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.tc-fire {
+  background: rgba(0, 240, 255, 0.18);
+  border: 2px solid rgba(0, 240, 255, 0.65);
+  color: #00f0ff;
+}
+
+.tc-bomb {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  background: rgba(255, 0, 255, 0.18);
+  border: 2px solid rgba(255, 0, 255, 0.65);
+  color: #ff5af7;
+}
+
+.tc-fire:active, .tc-fire.pressed {
+  background: rgba(0, 240, 255, 0.45);
+  transform: scale(0.92);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.7);
+}
+
+.tc-bomb:active, .tc-bomb.pressed {
+  background: rgba(255, 0, 255, 0.45);
+  transform: scale(0.92);
+  box-shadow: 0 0 24px rgba(255, 0, 255, 0.7);
+}
+
+@media (max-aspect-ratio: 1/1) {
+  /* 真正竖屏时,虚拟按键依然显示 */
+  .tc-pad { width: 150px; height: 150px; }
+  .tc-btn { width: 46px; height: 46px; font-size: 16px; }
+  .tc-up    { left: 52px;  top: 0;   }
+  .tc-left  { left: 0;     top: 52px; }
+  .tc-right { left: 104px; top: 52px; }
+  .tc-down  { left: 52px;  top: 104px; }
+  .tc-fire, .tc-bomb { width: 64px; height: 64px; font-size: 26px; }
+  .tc-bomb  { width: 50px; height: 50px; font-size: 20px; }
 }

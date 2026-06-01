@@ -2,7 +2,10 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#000000">
   <title>霓虹战机 - Neon Fighter</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -10,6 +13,29 @@
   <div id="game-wrap">
     <canvas id="game" width="960" height="720"></canvas>
   </div>
+
+  <!-- 移动端虚拟按键 -->
+  <div id="touch-controls" aria-hidden="true">
+    <div class="tc-pad">
+      <button class="tc-btn tc-up"    data-key="up"    type="button" aria-label="上">▲</button>
+      <button class="tc-btn tc-left"  data-key="left"  type="button" aria-label="左">◀</button>
+      <button class="tc-btn tc-right" data-key="right" type="button" aria-label="右">▶</button>
+      <button class="tc-btn tc-down"  data-key="down"  type="button" aria-label="下">▼</button>
+    </div>
+    <div class="tc-actions">
+      <button class="tc-fire"  data-key="fire"  type="button" aria-label="射击">●</button>
+      <button class="tc-bomb"  data-key="bomb"  type="button" aria-label="炸弹">◆</button>
+    </div>
+  </div>
+
+  <!-- 竖屏提示 -->
+  <div id="rotate-hint" aria-live="polite">
+    <div class="rh-phone">📱↻</div>
+    <div class="rh-title">建议横屏体验</div>
+    <div class="rh-sub">为了更好的游戏体验,请将设备旋转至横屏模式</div>
+    <button id="rh-continue" type="button">继续竖屏游戏</button>
+  </div>
+
   <script src="game.js"></script>
 </body>
 </html>
