@@ -1,4 +1,4 @@
-﻿# 霓虹游戏厅 · Neon Arcade
+# 霓虹游戏厅 · Neon Arcade
 
 A small collection of polished single-file (or near-single-file) HTML5 games with a unified neon-synthwave aesthetic.
 Lives at: <https://show.hackercd.cn/>
@@ -9,6 +9,7 @@ Lives at: <https://show.hackercd.cn/>
 |------|--------|-------------|
 | **霓虹打砖块** Neon Brick Breaker | [`neon-brick-breaker/`](neon-brick-breaker/) | 8 关经典打砖块 × 6 种道具 × 连击系统 |
 | **暗夜战机** Neon Fighter | [`shootit/`](shootit/) | 经典纵版卷轴射击 — 弹幕 / 敌机 / 最高分挑战 |
+| **合成大西瓜** Merge Watermelon | [`merge-watermelon/`](merge-watermelon/) | 物理合成 — 相同水果相碰合成，连击加倍，一路合到大西瓜 |
 
 ## ✨ Design Principles
 
