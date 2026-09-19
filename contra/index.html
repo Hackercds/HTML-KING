@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>魂斗罗 CONTRA - Classic Web</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="title-bar">
+      <h1>魂斗罗 <span class="en">CONTRA</span></h1>
+      <div class="subtitle">经典横版射击 · 三关挑战 · 致敬 1987</div>
+    </header>
+
+    <div class="screen-wrapper">
+      <canvas id="game" width="512" height="320" aria-label="Contra game canvas"></canvas>
+      <div id="hud-touch-cover"></div>
+      <div id="flash-layer"></div>
+      <div id="overlay" class="overlay">
+        <div class="panel">
+          <h2 id="overlay-title">魂斗罗</h2>
+          <p id="overlay-text">按 ENTER 开始</p>
+          <div class="legend">
+            <div><kbd>←</kbd><kbd>→</kbd> / <kbd>A</kbd><kbd>D</kbd> 移动</div>
+            <div><kbd>↑</kbd> 向上射击 · <kbd>↓</kbd> 趴下</div>
+            <div><kbd>Z</kbd>/<kbd>J</kbd> 射击 · <kbd>X</kbd>/<kbd>K</kbd> 跳跃</div>
+            <div><kbd>P</kbd> 暂停 · <kbd>R</kbd> 重开</div>
+          </div>
+          <div class="cheat-hint">秘籍: <span class="mono">↑↑↓↓←→←→ B A</span> ＝ 30 条命</div>
+          <div class="start-hint">按 ENTER / SPACE 开始</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="hint">
+      桌面端键盘 · 移动端屏幕触控 · 单文件零依赖 · 直接 F5 开始玩
+    </footer>
+  </div>
+
+  <!-- 触屏控制（只在触屏设备显示） -->
+  <div id="touch-controls">
+    <div class="touch-group left-group">
+      <button class="touch-btn" id="t-left" aria-label="左">
+        <svg viewBox="0 0 24 24"><path d="M15 6 L9 12 L15 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="touch-btn" id="t-right" aria-label="右">
+        <svg viewBox="0 0 24 24"><path d="M9 6 L15 12 L9 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="touch-group right-group">
+      <button class="touch-btn primary" id="t-fire" aria-label="射击">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
+      </button>
+      <button class="touch-btn" id="t-jump" aria-label="跳">
+        <svg viewBox="0 0 24 24"><path d="M12 4 L12 18 M6 10 L12 4 L18 10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="touch-group mid-group">
+      <button class="touch-btn small" id="t-up" aria-label="向上射击">
+        <svg viewBox="0 0 24 24"><path d="M12 4 L12 20 M4 10 L12 4 L20 10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="touch-btn small" id="t-down" aria-label="趴下">
+        <svg viewBox="0 0 24 24"><path d="M12 4 L12 20 M4 14 L12 20 L20 14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

@@ -10,6 +10,7 @@ Lives at: <https://show.hackercd.cn/>
 | **霓虹打砖块** Neon Brick Breaker | [`neon-brick-breaker/`](neon-brick-breaker/) | 8 关经典打砖块 × 6 种道具 × 连击系统 |
 | **暗夜战机** Neon Fighter | [`shootit/`](shootit/) | 经典纵版卷轴射击 — 弹幕 / 敌机 / 最高分挑战 |
 | **合成大西瓜** Merge Watermelon | [`merge-watermelon/`](merge-watermelon/) | 物理合成 — 相同水果相碰合成，连击加倍，一路合到大西瓜 |
+| **魂斗罗** Contra Classic | [`contra/`](contra/) | 经典横版卷轴射击 — 三关挑战（丛林 / 冰雪 / 异形）× 4 种武器 × Konami 30 条命秘籍 |
 
 ## ✨ Design Principles
 
