@@ -29,10 +29,11 @@ const S = VW / GW;  // 3.75x
 C.width = VW; C.height = VH;
 
 // 物理量全部按世界坐标计算
-const GRAVITY   = 0.55 * S;
-const MAX_FALL  = 8 * S;
-const PLAYER_SPEED = 2.1 * S;
-const JUMP_V    = -8.6 * S;
+// 物理量保持世界坐标单位 (不要乘 S, 否则位置+速度双重缩放导致游戏快进)
+const GRAVITY   = 0.55;
+const MAX_FALL  = 8;
+const PLAYER_SPEED = 2.1;
+const JUMP_V    = -8.6;
 
 const FIRE_COOLDOWN = { default: 10, rapid: 5, spread: 14, laser: 6 };
 const W = { default: 'default', rapid: 'rapid', spread: 'spread', laser: 'laser' };
@@ -253,13 +254,13 @@ function explode(x, y, palette, n = 18, power = 1) {
     const a = rnd(0, Math.PI * 2);
     const s = rnd(1.5, 3.5) * power;
     Game.particles.push(new Particle(x, y,
-      Math.cos(a) * s * S, Math.sin(a) * s * S - 0.5 * S,
-      irnd(20, 40), pick(palette), irnd(2, 5), 0.15 * S, 'spark'));
+      Math.cos(a) * s, Math.sin(a) * s - 0.5,
+      irnd(20, 40), pick(palette), irnd(2, 5), 0.15, 'spark'));
   }
   for (let i = 0; i < 6; i++) {
     Game.particles.push(new Particle(x + rnd(-6, 6), y + rnd(-6, 6),
-      rnd(-0.5, 0.5) * S, rnd(-1.2, -0.3) * S, irnd(30, 60),
-      pick(['#666', '#888', '#555']), irnd(4, 8), 0.02 * S, 'smoke'));
+      rnd(-0.5, 0.5), rnd(-1.2, -0.3), irnd(30, 60),
+      pick(['#666', '#888', '#555']), irnd(4, 8), 0.02, 'smoke'));
   }
   for (let i = 0; i < 3; i++) {
     Game.particles.push(new Particle(x, y, 0, 0, irnd(8, 14), '#ffffff', 6, 0, 'glow'));
@@ -268,7 +269,7 @@ function explode(x, y, palette, n = 18, power = 1) {
 function spark(x, y, n = 6, color = '#ffd84d') {
   for (let i = 0; i < n; i++) {
     const a = rnd(0, Math.PI * 2);
-    const sp = rnd(2, 4) * S;
+    const sp = rnd(2, 4);
     Game.particles.push(new Particle(x, y,
       Math.cos(a) * sp, Math.sin(a) * sp, 14, color, 2, 0, 'star'));
   }
@@ -277,7 +278,7 @@ function muzzleFlash(x, y, dir, color = '#ffe060') {
   for (let i = 0; i < 8; i++) {
     const spread = rnd(-0.6, 0.6);
     const a = Math.atan2(0, dir) + spread;
-    const sp = rnd(2, 5) * S;
+    const sp = rnd(2, 5);
     Game.particles.push(new Particle(x, y,
       Math.cos(a) * sp, Math.sin(a) * sp, irnd(6, 12),
       pick([color, '#ffffff', '#ffe080']), irnd(2, 3), 0, 'star'));
@@ -289,8 +290,8 @@ function muzzleFlash(x, y, dir, color = '#ffe060') {
 function dustKick(x, y, dir, n = 4) {
   for (let i = 0; i < n; i++) {
     Game.particles.push(new Particle(x + rnd(-2, 2), y,
-      -dir * rnd(0.5, 1.5) * S + rnd(-0.3, 0.3) * S, rnd(-1.5, -0.5) * S, irnd(15, 30),
-      pick(['#a08868', '#8a6e48', '#6a5028']), irnd(2, 3), 0.1 * S, 'smoke'));
+      -dir * rnd(0.5, 1.5) + rnd(-0.3, 0.3), rnd(-1.5, -0.5), irnd(15, 30),
+      pick(['#a08868', '#8a6e48', '#6a5028']), irnd(2, 3), 0.1, 'smoke'));
   }
 }
 
@@ -350,7 +351,7 @@ class Bullet {
 
 class PowerUp {
   constructor(x, y, type) {
-    this.x = x; this.y = y; this.vy = -3 * S; this.vx = 0;
+    this.x = x; this.y = y; this.vy = -3; this.vx = 0;
     this.w = 14; this.h = 14;
     this.type = type;
     this.dead = false; this.life = 700;
@@ -498,7 +499,7 @@ class Grunt extends Enemy {
     const dx = player.x - this.x;
     this.dir = dx >= 0 ? 1 : -1;
     const dist = Math.abs(dx);
-    if (dist > 90) this.vx = this.dir * 0.65 * S;
+    if (dist > 90) this.vx = this.dir * 0.65;
     else this.vx *= 0.7;
     this.fireCD--;
     if (this.fireCD <= 0 && dist < 320) {
@@ -511,7 +512,7 @@ class Grunt extends Enemy {
     const cx = this.x + this.w / 2, cy = this.y + 10;
     const dx = player.x - cx, dy = (player.y + player.h / 2) - cy;
     const len = Math.hypot(dx, dy) || 1;
-    const sp = 3.4 * S;
+    const sp = 3.4;
     Game.bullets.push(new Bullet(cx, cy, dx / len * sp, dy / len * sp, false, 'default'));
     muzzleFlash(cx + dx / len * 6, cy + dy / len * 6, sign(dx), '#ff8888');
     Sound.shoot2();
@@ -604,7 +605,7 @@ class Runner extends Enemy {
   }
   update(player) {
     this.t++;
-    this.vx = this.dir * 2.6 * S;
+    this.vx = this.dir * 2.6;
     this.physics(Game.groundY());
     if (this.x < Game.camera.x - 20) this.dead = true;
     if (this.t % 6 === 0 && Game.camera.x - 20 < this.x) {
@@ -667,7 +668,7 @@ class Turret extends Enemy {
     if (this.fireCD <= 0) {
       this.fireCD = irnd(80, 140);
       const cx = this.x + this.w / 2, cy = this.y + 8;
-      const sp = 3.0 * S;
+      const sp = 3.0;
       Game.bullets.push(new Bullet(cx, cy, Math.cos(this.turretAngle) * sp, Math.sin(this.turretAngle) * sp, false, 'default'));
       for (let i = 1; i <= 2; i++) {
         const a = this.turretAngle + i * 0.15;
@@ -740,12 +741,12 @@ class Flyer extends Enemy {
     this.t++;
     this.wingFrame = (this.wingFrame + 0.4) % 4;
     this.dir = player.x >= this.x ? 1 : -1;
-    this.vx = this.dir * 1.3 * S;
+    this.vx = this.dir * 1.3;
     this.y = this.baseY + Math.sin(this.t * 0.05) * 16;
     this.fireCD--;
     if (this.fireCD <= 0) {
       this.fireCD = irnd(90, 180);
-      const b = new Bullet(this.x + this.w / 2, this.y + this.h / 2, this.dir * 3.2 * S, 0, false, 'default');
+      const b = new Bullet(this.x + this.w / 2, this.y + this.h / 2, this.dir * 3.2, 0, false, 'default');
       Game.bullets.push(b);
       muzzleFlash(this.x + this.w / 2 + this.dir * 6, this.y + this.h / 2, this.dir, '#ff6666');
       Sound.shoot2();
@@ -829,7 +830,7 @@ class BossBase extends Enemy {
       setTimeout(() => {
         for (let i = 0; i < 12; i++) {
           Game.particles.push(new Particle(this.x + this.w/2 + rnd(-this.w/2, this.w/2), this.y + this.h/2,
-            rnd(-3, 3) * S, rnd(-4, -1) * S, irnd(60, 100), pick(['#ff5be0', '#ffd84d', '#ff8a3a']), irnd(3, 6), 0.15 * S, 'spark'));
+            rnd(-3, 3), rnd(-4, -1), irnd(60, 100), pick(['#ff5be0', '#ffd84d', '#ff8a3a']), irnd(3, 6), 0.15, 'spark'));
         }
         Sound.clear();
       }, 500);
@@ -877,7 +878,7 @@ class BossJungle extends BossBase {
       const spread = 0.4;
       for (let i = 0; i < N; i++) {
         const a = Math.atan2(dy, dx) + (i - (N - 1) / 2) * spread;
-        Game.bullets.push(new Bullet(cx, cy, Math.cos(a) * 3.2 * S, Math.sin(a) * 3.2 * S, false, 'default'));
+        Game.bullets.push(new Bullet(cx, cy, Math.cos(a) * 3.2, Math.sin(a) * 3.2, false, 'default'));
       }
       muzzleFlash(cx, cy, 1, '#ff6666');
       this.fireCD = this.phase === 0 ? 60 : 35;
@@ -985,7 +986,7 @@ class BossIce extends BossBase {
       const cx = this.x + this.w / 2, cy = this.y + this.h / 2;
       const dx = player.x - cx, dy = (player.y + player.h / 2) - cy;
       const angles = this.phase === 0 ? [-0.5, -0.25, 0, 0.25, 0.5] : [-0.7, -0.4, -0.2, 0, 0.2, 0.4, 0.7];
-      const speed = this.phase === 0 ? 3.0 * S : 3.6 * S;
+      const speed = this.phase === 0 ? 3.0 : 3.6;
       for (const off of angles) {
         const a = Math.atan2(dy, dx) + off;
         Game.bullets.push(new Bullet(cx, cy, Math.cos(a) * speed, Math.sin(a) * speed, false, 'default'));
@@ -997,7 +998,7 @@ class BossIce extends BossBase {
     }
     if (this.phase >= 1 && this.t % 60 === 0) {
       const cx = player.x + irnd(-40, 40);
-      Game.bullets.push(new Bullet(cx, this.y + this.h, 0, 4.0 * S, false, 'default'));
+      Game.bullets.push(new Bullet(cx, this.y + this.h, 0, 4.0, false, 'default'));
       Sound.shoot2();
     }
     if (this.hp < this.maxHp * 0.6) this.phase = 1;
@@ -1092,7 +1093,7 @@ class BossAlien extends BossBase {
       const baseAngle = Math.atan2(player.y + player.h/2 - cy, player.x - cx);
       for (let i = 0; i < N; i++) {
         const a = baseAngle + (i - (N - 1) / 2) * 0.22;
-        const sp = (2.8 + this.phase * 0.3) * S;
+        const sp = 2.8 + this.phase * 0.3;
         Game.bullets.push(new Bullet(cx, cy, Math.cos(a) * sp, Math.sin(a) * sp, false, 'default'));
       }
       muzzleFlash(cx, cy, 1, '#ff5be0');
@@ -1214,8 +1215,8 @@ class Player {
       this.alive = false;
       this.deathT = 90;
     } else {
-      this.vy = -4 * S;
-      this.vx = -this.dir * 3 * S;
+      this.vy = -4;
+      this.vx = -this.dir * 3;
     }
   }
   update() {
@@ -1309,9 +1310,9 @@ class Player {
     this.fireCD = FIRE_COOLDOWN[this.fireMode] ?? 10;
     const cx = this.x + this.w / 2 + this.dir * 8;
     const cy = this.y + 10 + (this.aimY === -1 ? -8 : this.aimY === 1 ? 6 : 0);
-    let vx = this.dir * 6 * S, vy = 0;
-    if (this.aimY === -1) vy = -2.5 * S;
-    else if (this.aimY === 1) vy = 2.5 * S;
+    let vx = this.dir * 6, vy = 0;
+    if (this.aimY === -1) vy = -2.5;
+    else if (this.aimY === 1) vy = 2.5;
 
     const muzzleColor = WPN_MUZZLE[this.fireMode] || '#ffe060';
     const spawn = (vx_, vy_, kind) => {
@@ -1328,7 +1329,7 @@ class Player {
     } else if (this.fireMode === W.spread) {
       for (let i = -2; i <= 2; i++) {
         const a = Math.atan2(vy, vx) + i * 0.16;
-        spawn(Math.cos(a) * 6 * S, Math.sin(a) * 6 * S, 'spread');
+        spawn(Math.cos(a) * 6, Math.sin(a) * 6, 'spread');
       }
       muzzleFlash(cx + this.dir * 4, cy, this.dir, muzzleColor);
       Sound.shoot();
@@ -1746,7 +1747,7 @@ const Game = {
     if (this.state === 'over' || this.state === 'complete') {
       this.stateTimer++;
       if (Math.random() < 0.4) {
-        this.particles.push(new Particle(rnd(0, GW), rnd(0, GH), rnd(-0.3, 0.3) * S, rnd(-0.3, 0.3) * S, 60,
+        this.particles.push(new Particle(rnd(0, GW), rnd(0, GH), rnd(-0.3, 0.3), rnd(-0.3, 0.3), 60,
           pick(['#ffd84d', '#ff5b3a', '#4ab8ff']), 2, 0, 'spark'));
       }
       for (const p of this.particles) p.update();
@@ -1825,6 +1826,7 @@ const Game = {
     this.camera.apply(() => {
       this.drawParallax(def);
       this.drawBgParticles(def);
+      if (def.hasWaterfall) this.drawWaterfall();
       for (const p of this.platforms) p.draw();
       this.drawGround(def);
       for (const p of this.powerups) p.draw();
@@ -1833,9 +1835,6 @@ const Game = {
       if (this.player) this.player.draw();
       for (const p of this.particles) p.draw();
     });
-
-    // 瀑布 (画布坐标系下的固定背景元素, 跟随相机缓慢视差)
-    if (def.hasWaterfall) this.drawWaterfall();
 
     this.drawScreenFlash();
     this.drawHUD(def);
@@ -1910,36 +1909,30 @@ const Game = {
   },
 
   drawWaterfall() {
-    // 经典丛林瀑布 (画布坐标系, 缓慢视差)
+    // 经典丛林瀑布 (世界坐标, 固定在 Stage 1 起点附近 x=80)
     const t = performance.now() * 0.001;
-    const cx = Game.camera.x;
-    const wx = 200 + cx * 0.15;  // 缓慢视差移动
-    const wy = 80;
-    const ww = 140, wh = VH - 280;
-    // 岩石包围
-    ctx.fillStyle = '#3a2818';
-    ctx.fillRect(wx - 30, wy, 30, wh);
-    ctx.fillRect(wx + ww, wy, 30, wh);
-    ctx.fillStyle = '#2a1a0a';
-    ctx.fillRect(wx - 30, wy + wh - 60, ww + 60, 60);
+    const wx = 80, wy = 0;            // 世界坐标
+    const ww = 80, wh = GH - 40;
+    // 岩石包围 (世界坐标, 用 r() 自动按 S 缩放)
+    r(wx - 8, wy, 8, wh, '#3a2818');
+    r(wx + ww, wy, 8, wh, '#3a2818');
+    r(wx - 8, wy + wh - 16, ww + 16, 16, '#2a1a0a');
     // 流水主体
-    for (let i = 0; i < 4; i++) {
-      ctx.fillStyle = i % 2 === 0 ? '#88ccee' : '#aaeeff';
-      ctx.fillRect(wx + i * 8, wy, ww - i * 16, wh);
+    for (let i = 0; i < 3; i++) {
+      r(wx + i * 2, wy, ww - i * 4, wh, i % 2 === 0 ? '#88ccee' : '#aaeeff');
     }
     // 水花白线 (动画)
     ctx.globalAlpha = 0.7;
-    for (let y = 0; y < wh; y += 12) {
-      const xOff = Math.sin((y + t * 80) * 0.2) * 6;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(wx + 12 + xOff, wy + y + (Math.sin(t * 4 + y * 0.3) > 0 ? 2 : 0), ww - 24, 2);
+    for (let y = 0; y < wh; y += 4) {
+      const xOff = Math.sin((y + t * 40) * 0.3) * 2;
+      r(wx + 4 + xOff, y + (Math.sin(t * 4 + y * 0.3) > 0 ? 1 : 0), ww - 8, 1, '#ffffff');
     }
     ctx.globalAlpha = 1;
-    // 顶部水雾
-    if (Math.random() < 0.5) {
-      Game.particles.push(new Particle((wx + rnd(20, ww - 20)) / S, wy / S,
-        rnd(-0.3, 0.3) * S, rnd(-1.5, -0.5) * S, irnd(20, 40),
-        pick(['#aaeeff', '#ffffff']), irnd(2, 4), 0.02 * S, 'smoke'));
+    // 顶部水雾粒子
+    if (Math.random() < 0.4) {
+      Game.particles.push(new Particle(wx + rnd(8, ww - 8), wy + 2,
+        rnd(-0.3, 0.3), rnd(-1.5, -0.5), irnd(20, 40),
+        pick(['#aaeeff', '#ffffff']), irnd(2, 4), 0.02, 'smoke'));
     }
   },
 
