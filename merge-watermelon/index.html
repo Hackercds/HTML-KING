@@ -145,7 +145,7 @@
         🖱️ 鼠标瞄准 · 点击投放&nbsp;&nbsp;📱 手指滑动 · 松开投放<br>
         ⌨️ 方向键移动 · 空格投放<br>
         相同水果相碰即 <b>合成更高级水果</b>，一路合到 🍉 大西瓜！<br>
-        水果堆超过 <span class="danger">危险线</span> 则游戏结束
+        水果堆压过 <span class="danger">危险线</span> 持续 3 秒才结束 —— 期间合成可救场
       </div>
     </div>
     <div class="overlay" id="overScreen">
@@ -171,29 +171,32 @@
 /* ---------------- 常量 ---------------- */
 const WORLD_W = 450, WORLD_H = 780;
 const LINE_Y = 110;                 // 危险线（水果堆超过它持续一段时间即失败）
-const GRAVITY = 2100;
-const REST = 0.25;                  // 恢复系数
+const GRAVITY = 1900;
+const REST = 0.14;                  // 恢复系数（越低越不弹跳，落点更好预判）
+const FRICTION = 0.3;               // 接触摩擦，让水果堆更快稳定
 const SUB = 2;                      // 每帧物理子步
 const ITER = 5;                     // 每子步碰撞迭代次数
-const OVER_GRACE = 1.2;             // 越过危险线多少秒判负
+const OVER_GRACE = 3.0;             // 越过危险线多少秒判负（给玩家合成救场的时间）
+const CALM_SPEED = 80;              // 低于此速度才算“压在线上”，下落中的水果不判负
 const FONT = '"PingFang SC","Microsoft YaHei",sans-serif';
 const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 const CONFETTI_COLORS = ['#00f0ff','#ff5af7','#ffd93b','#3ddc84','#ff8b3a'];
 
+/* 半径增长比约 1.175：大西瓜直径 220px（盒宽 450），留出充足操作空间 */
 const FRUITS = [
-  { emoji:'🍇', name:'葡萄',    r:24,  color:'#9b59b6', light:'#c39bd3', pts:2    },
-  { emoji:'🍒', name:'樱桃',    r:29,  color:'#ff4757', light:'#ff8a94', pts:4    },
-  { emoji:'🍊', name:'橘子',    r:36,  color:'#ff9f43', light:'#ffc9a3', pts:8    },
-  { emoji:'🍋', name:'柠檬',    r:44,  color:'#ffd32a', light:'#ffefb0', pts:16   },
-  { emoji:'🥝', name:'猕猴桃',  r:53,  color:'#2ed573', light:'#a6f0c0', pts:32   },
-  { emoji:'🍅', name:'番茄',    r:65,  color:'#ff6348', light:'#ffb3a7', pts:64   },
-  { emoji:'🍑', name:'桃子',    r:79,  color:'#ff8fab', light:'#ffc9d6', pts:128  },
-  { emoji:'🍍', name:'菠萝',    r:97,  color:'#f5b041', light:'#f9e79f', pts:256  },
-  { emoji:'🥥', name:'椰子',    r:118, color:'#c8a27a', light:'#e8d5bd', pts:512  },
-  { emoji:'🍉', name:'半个西瓜',r:144, color:'#27ae60', light:'#a9dfbf', pts:1024, custom:'half' },
-  { emoji:'🍉', name:'大西瓜',  r:175, color:'#1e8449', light:'#52be80', pts:2048, custom:'full' }
+  { emoji:'🍇', name:'葡萄',    r:22,  color:'#9b59b6', light:'#c39bd3', pts:2    },
+  { emoji:'🍒', name:'樱桃',    r:26,  color:'#ff4757', light:'#ff8a94', pts:4    },
+  { emoji:'🍊', name:'橘子',    r:31,  color:'#ff9f43', light:'#ffc9a3', pts:8    },
+  { emoji:'🍋', name:'柠檬',    r:36,  color:'#ffd32a', light:'#ffefb0', pts:16   },
+  { emoji:'🥝', name:'猕猴桃',  r:42,  color:'#2ed573', light:'#a6f0c0', pts:32   },
+  { emoji:'🍅', name:'番茄',    r:49,  color:'#ff6348', light:'#ffb3a7', pts:64   },
+  { emoji:'🍑', name:'桃子',    r:58,  color:'#ff8fab', light:'#ffc9d6', pts:128  },
+  { emoji:'🍍', name:'菠萝',    r:68,  color:'#f5b041', light:'#f9e79f', pts:256  },
+  { emoji:'🥥', name:'椰子',    r:80,  color:'#c8a27a', light:'#e8d5bd', pts:512  },
+  { emoji:'🍉', name:'半个西瓜',r:94,  color:'#27ae60', light:'#a9dfbf', pts:1024, custom:'half' },
+  { emoji:'🍉', name:'大西瓜',  r:110, color:'#1e8449', light:'#52be80', pts:2048, custom:'full' }
 ];
-const SPAWN_W = [18, 14, 10, 7, 4, 2];   // 可掉落水果等级权重（前 6 种）
+const SPAWN_W = [20, 16, 12, 8, 4];       // 只掉落最小的 5 种水果（与原版一致）
 
 /* ---------------- 状态 ---------------- */
 const S = {
@@ -203,7 +206,7 @@ const S = {
   current: 1, next: 2, aimX: WORLD_W / 2,
   holding: false,
   combo: 0, comboTimer: 0,
-  aboveTimer: 0,
+  aboveTimer: 0, warnBeep: 0,
   shake: 0, maxLevel: 0,
   muted: false, idSeq: 0
 };
@@ -377,6 +380,12 @@ function collide(a, b) {
     const j = -(1 + REST) * vn / invSum;
     a.vx -= nx * j * invA; a.vy -= ny * j * invA;
     b.vx += nx * j * invB; b.vy += ny * j * invB;
+    // 切向摩擦：抑制互相滑动，让水果堆更快稳定、落点更好预判
+    const tx = -ny, ty = nx;
+    const vt = (b.vx - a.vx) * tx + (b.vy - a.vy) * ty;
+    const jt = -vt * FRICTION / invSum;
+    a.vx -= tx * jt * invA; a.vy -= ty * jt * invA;
+    b.vx += tx * jt * invB; b.vy += ty * jt * invB;
   }
 }
 
@@ -385,7 +394,7 @@ function step(dt) {
   for (let s = 0; s < SUB; s++) {
     for (const b of S.bodies) {
       b.vy += GRAVITY * h;
-      b.vx *= 0.9995; b.vy *= 0.9995;
+      b.vx *= 0.999; b.vy *= 0.999;
       b.x += b.vx * h; b.y += b.vy * h;
       const sp = Math.hypot(b.vx, b.vy);
       if (sp > 1400) { b.vx *= 1400 / sp; b.vy *= 1400 / sp; }
@@ -393,7 +402,7 @@ function step(dt) {
       if (b.x - b.r < 0) { b.x = b.r; b.vx = Math.abs(b.vx) * 0.35; }
       else if (b.x + b.r > WORLD_W) { b.x = WORLD_W - b.r; b.vx = -Math.abs(b.vx) * 0.35; }
       if (b.y - b.r < 0) { b.y = b.r; b.vy = Math.abs(b.vy) * 0.2; }
-      if (b.y + b.r > WORLD_H) { b.y = WORLD_H - b.r; if (b.vy > 0) b.vy = -b.vy * 0.3; b.vx *= 0.985; }
+      if (b.y + b.r > WORLD_H) { b.y = WORLD_H - b.r; if (b.vy > 0) b.vy = -b.vy * 0.22; b.vx *= 0.94; }
     }
     for (let it = 0; it < ITER; it++) {
       const arr = S.bodies;
@@ -459,11 +468,12 @@ function dropFruit() {
   const x = clamp(S.aimX, r, WORLD_W - r);
   const sy = spawnYFor(r);
   const nb = { id: S.idSeq++, level: S.current, x, y: sy, vx: 0, vy: 0, r, dead: false };
-  // 与不同等级水果重叠过深 → 直接失败
+  // 只有真正“塞不下”（被不同等级水果深度掩埋）才立即判负；
+  // 轻微重叠交给物理挤开 + 危险线宽限，避免毫无预警的猝死。
   for (const b of S.bodies) {
     if (b.dead) continue;
     const d = Math.hypot(b.x - x, b.y - sy);
-    if (d < b.r + r - 6 && b.level !== nb.level) { doGameOver(); return; }
+    if (d < b.r + r * 0.3 && b.level !== nb.level) { doGameOver(); return; }
   }
   S.bodies.push(nb);
   // 落点同等级接触 → 立即合成
@@ -482,7 +492,7 @@ function dropFruit() {
 
 function startGame() {
   S.state = 'playing';
-  S.score = 0; S.combo = 0; S.comboTimer = 0; S.aboveTimer = 0;
+  S.score = 0; S.combo = 0; S.comboTimer = 0; S.aboveTimer = 0; S.warnBeep = 0;
   S.bodies = []; S.particles = []; S.texts = [];
   S.shake = 0; S.holding = false; S.maxLevel = 0; S.idSeq = 0;
   S.current = randLevel(); S.next = randLevel();
@@ -627,6 +637,20 @@ function drawFullWatermelon(r) {
   ctx.beginPath(); ctx.ellipse(-r * 0.35, -r * 0.4, r * 0.32, r * 0.2, -0.5, 0, Math.PI * 2); ctx.fill();
 }
 
+// 预估水果落点（与正下方最高障碍的接触位置）
+function predictLandingY(x, r) {
+  let best = WORLD_H - r;
+  for (const b of S.bodies) {
+    if (b.dead) continue;
+    const dx = Math.abs(b.x - x), rr = b.r + r;
+    if (dx < rr) {
+      const y = b.y - Math.sqrt(rr * rr - dx * dx);
+      if (y < best) best = y;
+    }
+  }
+  return best;
+}
+
 function drawHeld() {
   const cfg = FRUITS[S.current];
   ctx.save();
@@ -638,6 +662,13 @@ function drawHeld() {
     ctx.strokeStyle = 'rgba(0,240,255,0.25)';
     ctx.setLineDash([4, 8]);
     ctx.beginPath(); ctx.moveTo(S.aimX, spawnYFor(cfg.r) + cfg.r + 6); ctx.lineTo(S.aimX, WORLD_H); ctx.stroke();
+    ctx.setLineDash([]);
+    // 落点提示（预估第一接触位置），手机端操作更友好
+    const ly = predictLandingY(S.aimX, cfg.r);
+    ctx.setLineDash([3, 5]);
+    ctx.strokeStyle = 'rgba(0,240,255,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(S.aimX, ly, cfg.r, 0, Math.PI * 2); ctx.stroke();
     ctx.setLineDash([]);
   }
   drawFruitAt(S.current, S.aimX, spawnYFor(cfg.r), 0.95);
@@ -659,7 +690,8 @@ function drawNext() {
   ctx.font = 'bold 11px ' + FONT;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('下一个 NEXT', bx + bw / 2, by + 14);
-  drawFruitAt(S.next, bx + bw / 2, by + bh / 2 + 7, 1, 0.42);
+  // 预览统一显示成相近大小，避免小水果看不清
+  drawFruitAt(S.next, bx + bw / 2, by + bh / 2 + 7, 1, 24 / FRUITS[S.next].r);
   ctx.restore();
 }
 
@@ -670,15 +702,30 @@ function render() {
   if (S.shake > 0.2) {
     ctx.translate(rand(-S.shake, S.shake), rand(-S.shake, S.shake));
   }
-  // 危险线
-  ctx.strokeStyle = S.aboveTimer > 0.6 ? 'rgba(255,45,117,0.95)' : 'rgba(255,45,117,0.5)';
-  ctx.setLineDash([8, 7]); ctx.lineWidth = 2;
+  // 危险线：压线时红色脉冲 + 倒计时条，给玩家合成救场的时间
+  const danger = S.aboveTimer > 0.05;
+  const pulse = danger ? 0.55 + 0.45 * Math.sin(performance.now() / 90) : 0;
+  ctx.strokeStyle = danger ? 'rgba(255,45,117,' + (0.6 + 0.4 * pulse) + ')' : 'rgba(255,45,117,0.45)';
+  ctx.lineWidth = danger ? 3 : 2;
+  ctx.setLineDash([8, 7]);
   ctx.beginPath(); ctx.moveTo(0, LINE_Y); ctx.lineTo(WORLD_W, LINE_Y); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = 'rgba(255,45,117,0.75)';
   ctx.font = 'bold 12px ' + FONT;
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   ctx.fillText('⚠ 危险线', 10, LINE_Y - 8);
+  if (danger && S.state === 'playing') {
+    // 剩余时间条
+    const left = Math.max(0, 1 - S.aboveTimer / OVER_GRACE);
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    roundRect(WORLD_W - 118, LINE_Y - 22, 104, 9, 5); ctx.fill();
+    ctx.fillStyle = left > 0.4 ? '#ffd93b' : '#ff2d75';
+    roundRect(WORLD_W - 118, LINE_Y - 22, 104 * left, 9, 5); ctx.fill();
+    ctx.fillStyle = '#ff8fb0';
+    ctx.font = 'bold 11px ' + FONT;
+    ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('快合成救场！', WORLD_W - 14, LINE_Y - 27);
+  }
   // 水果
   for (const b of S.bodies) if (!b.dead) drawFruitAt(b.level, b.x, b.y);
   // 手持水果 & 下一个预览
@@ -729,13 +776,22 @@ function update(dt) {
   if (S.state === 'playing') {
     step(dt);
     if (S.comboTimer > 0) S.comboTimer -= dt;
-    // 危险线持续判定
+    // 危险线持续判定：只统计已经稳定压在线上的水果，
+    // 下落中 / 刚合并弹出的水果不计入，避免误判。
     let above = false;
     for (const b of S.bodies) {
-      if (!b.dead && b.y - b.r < LINE_Y) { above = true; break; }
+      if (b.dead) continue;
+      if (b.y - b.r < LINE_Y && Math.hypot(b.vx, b.vy) < CALM_SPEED) { above = true; break; }
     }
-    if (above) S.aboveTimer += dt;
-    else S.aboveTimer = Math.max(0, S.aboveTimer - dt * 2);
+    if (above) {
+      S.aboveTimer += dt;
+      // 渐进警告音：每 0.55s 一响
+      S.warnBeep -= dt;
+      if (S.warnBeep <= 0) { S.warnBeep = 0.55; tone(880, 0.09, 'square', 0.1); }
+    } else {
+      S.aboveTimer = Math.max(0, S.aboveTimer - dt * 2);
+      S.warnBeep = 0;
+    }
     if (S.aboveTimer > OVER_GRACE) doGameOver();
   }
   for (const p of S.particles) {
