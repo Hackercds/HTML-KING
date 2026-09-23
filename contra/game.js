@@ -177,9 +177,10 @@ class Camera {
   constructor() { this.x = 0; this.y = 0; this.shake = 0; this.flashT = 0; this.flashColor = '#ffffff'; }
   follow(target) {
     const tx = target.x + target.w / 2 - GW / 2;
-    const ty = target.y + target.h / 2 - GH / 2;
     this.x += (tx - this.x) * 0.18;
-    this.y = clamp(this.y + (ty - this.y) * 0.12, -80, 60);
+    // 关卡高度与视口完全相等，纵向必须锁定 0：
+    // 否则镜头会被顶起，顶部瀑布带被挤出画面、地面下方露出一条黑边
+    this.y = 0;
     if (this.x < 0) this.x = 0;
     const maxX = Math.max(0, Game.levelW() - GW);
     if (this.x > maxX) this.x = maxX;
@@ -1909,21 +1910,34 @@ const Game = {
     const t = performance.now() * 0.001;
     const wx = 80, wy = 0;            // 世界坐标
     const ww = 80, wh = GH - 40;
-    // 岩石包围 (世界坐标, 用 r() 自动按 S 缩放)
-    r(wx - 8, wy, 8, wh, '#4a4a58');
-    r(wx + ww, wy, 8, wh, '#4a4a58');
-    r(wx - 8, wy + wh - 16, ww + 16, 16, '#2a2a38');
-    // 流水主体（原版是灰白色瀑布）
-    for (let i = 0; i < 3; i++) {
-      r(wx + i * 2, wy, ww - i * 4, wh, i % 2 === 0 ? '#b0b0c4' : '#dcdcec');
-    }
-    // 水花白线 (动画)
-    ctx.globalAlpha = 0.7;
-    for (let y = 0; y < wh; y += 4) {
-      const xOff = Math.sin((y + t * 40) * 0.3) * 2;
-      r(wx + 4 + xOff, y + (Math.sin(t * 4 + y * 0.3) > 0 ? 1 : 0), ww - 8, 1, '#ffffff');
+    // 两侧岩壁
+    r(wx - 12, wy, 12, wh, '#4a4a58');
+    r(wx - 12, wy, 4, wh, '#60607a');
+    r(wx + ww, wy, 12, wh, '#4a4a58');
+    r(wx + ww + 8, wy, 4, wh, '#60607a');
+    // 流水主体（竖直分层，中间最亮）
+    r(wx, wy, ww, wh, '#9c9cb4');
+    r(wx + 6, wy, ww - 12, wh, '#bcbcd0');
+    r(wx + 18, wy, ww - 36, wh, '#dcdce8');
+    r(wx + 34, wy, 14, wh, '#ffffff');
+    // 竖向水流条纹（原来的横向白线看起来像梯子）
+    ctx.globalAlpha = 0.45;
+    for (let i = 0; i < 6; i++) {
+      const sx = wx + 8 + i * 12 + Math.sin(t * 2.2 + i * 1.3) * 2;
+      r(sx, wy, 2, wh, i % 2 ? '#ffffff' : '#7c7c96');
     }
     ctx.globalAlpha = 1;
+    // 顶部溢流口
+    r(wx - 6, wy, ww + 12, 4, '#e8e8f4');
+    // 底部水花
+    ctx.globalAlpha = 0.8;
+    for (let i = 0; i < 7; i++) {
+      const bx = wx - 8 + i * 14 + Math.sin(t * 3 + i * 1.7) * 3;
+      r(bx, wy + wh - 7, 8, 7, '#ffffff');
+    }
+    ctx.globalAlpha = 1;
+    // 底部水潭
+    r(wx - 10, wy + wh - 3, ww + 20, 3, '#cfe0f0');
     // 顶部水雾粒子
     if (Math.random() < 0.4) {
       Game.particles.push(new Particle(wx + rnd(8, ww - 8), wy + 2,
@@ -2028,23 +2042,28 @@ const Game = {
     ctx.fillText('3 STAGES  ·  3 BOSSES  ·  4 WEAPONS  ·  KONAMI CHEAT  ·  4K RENDER', VW / 2, VH - 60);
   },
 
+  // 视差平铺的起始 x：保证贴图始终覆盖当前视口 [cx, cx+GW]
+  // （旧写法用 i*间距 + (cx*系数)%间距，镜头走远后所有贴图都留在原点附近 → 背景消失）
+  tileStart(cx, factor, tile) {
+    const off = (cx * factor) % tile;
+    return Math.floor((cx - tile - off) / tile) * tile + off;
+  },
+
   drawParallax(def) {
     const cx = Game.camera.x;
     if (this.stageIdx === 0) { this.drawJungleBg(cx); return; }
+    const end = cx + GW + 96;
     // 远山
-    for (let i = 0; i < 12; i++) {
+    for (let x = this.tileStart(cx, 0.3, 90), i = 0; x < end; x += 90, i++) {
       const h = 30 + Math.sin(i * 1.3 + cx * 0.001) * 8;
-      const x = i * 90 - (cx * 0.3 % 90);
       r(x, GH - 60 - h, 90, GH, def.mountain1);
     }
-    for (let i = 0; i < 14; i++) {
+    for (let x = this.tileStart(cx, 0.5, 80), i = 0; x < end; x += 80, i++) {
       const h = 20 + Math.sin(i * 1.1 + cx * 0.002) * 6;
-      const x = i * 80 - (cx * 0.5 % 80);
       r(x, GH - 50 - h, 80, GH, def.mountain2);
     }
     // 树 / 装饰
-    for (let i = 0; i < 16; i++) {
-      const x = i * 70 - (cx * 0.7 % 70);
+    for (let x = this.tileStart(cx, 0.7, 70); x < end; x += 70) {
       if (this.stageIdx === 2) {
         r(x, GH - 70, 4, 30, def.tree);
         r(x + 4, GH - 80, 12, 6, def.treeLight);
@@ -2061,10 +2080,10 @@ const Game = {
   drawJungleBg(cx) {
     const gy = this.groundY();
     const bandH = 58;
+    const end = cx + GW + 96;
     // 顶部崖壁 + 瀑布帘（视差最慢）
-    r(0, 0, GW, bandH, '#000000');
-    for (let i = 0; i < 12; i++) {
-      const x = i * 64 + (cx * 0.92) % 64;
+    r(cx - 8, 0, GW + 16, bandH, '#000000');
+    for (let x = this.tileStart(cx, 0.92, 64); x < end; x += 64) {
       r(x + 2, 0, 15, bandH, '#2a2a38');
       r(x + 2, 0, 3, bandH, '#42425a');
       r(x + 49, 0, 15, bandH, '#2a2a38');
@@ -2073,25 +2092,37 @@ const Game = {
       r(x + 23, 0, 18, bandH - 4, '#dcdcec');
       r(x + 29, 0, 7, bandH, '#ffffff');
     }
-    // 棕榈树排
-    for (let i = 0; i < 20; i++) {
-      const x = i * 58 + (cx * 0.55) % 58;
-      const ty = gy - 30;
-      r(x + 9, ty, 4, 30, '#7a4a10');
-      r(x + 9, ty, 2, 30, '#c08a38');
-      r(x - 3, ty - 11, 28, 7, '#00a800');
-      r(x + 1, ty - 17, 18, 7, '#58d858');
-      r(x - 7, ty - 5, 12, 5, '#00a800');
-      r(x + 19, ty - 5, 12, 5, '#00a800');
-      r(x + 7, ty - 19, 6, 4, '#7ae07a');
+    // 棕榈树排（三种形态交替，避免整排一模一样）
+    for (let x = this.tileStart(cx, 0.55, 58); x < end; x += 58) {
+      this.drawPalm(x, gy, Math.abs(Math.round(x / 58)) % 3);
     }
     // 灌木丛排（最近的一层）
-    for (let i = 0; i < 24; i++) {
-      const x = i * 46 + (cx * 0.3) % 46;
-      r(x, gy - 14, 16, 14, '#00a800');
-      r(x + 4, gy - 19, 9, 7, '#58d858');
-      r(x - 2, gy - 8, 22, 8, '#007800');
+    for (let x = this.tileStart(cx, 0.3, 46); x < end; x += 46) {
+      const v = Math.abs(Math.round(x / 46)) % 3;
+      const bh = 12 + v * 3;
+      r(x, gy - bh, 16, bh, '#00a800');
+      r(x + 4, gy - bh - 5, 9, 7, '#58d858');
+      r(x - 2, gy - bh + 6, 22, bh - 6, '#007800');
     }
+  },
+
+  // 原版风格的棕榈树：细树干 + 下垂叶冠（v=0/1/2 三种形态）
+  drawPalm(x, gy, v) {
+    const vv = v || 0;
+    const th = 34 + vv * 3;
+    const ty = gy - th;
+    r(x + 10, ty, 5, th, '#7a4a10');
+    r(x + 10, ty, 2, th, '#b8822c');
+    r(x + 8, ty + th - 4, 9, 4, '#5a3408');
+    // 叶冠
+    const w = 22 + vv * 3;
+    r(x + 1, ty - 9, w, 6, '#00a800');
+    r(x + 5, ty - 14 - vv, w - 8, 6, '#58d858');
+    r(x - 7, ty - 4, 13, 5, '#00a800');
+    r(x - 10, ty + 1, 10, 3, '#007800');
+    r(x + 1 + w, ty - 4, 13, 5, '#00a800');
+    r(x + 6 + w, ty + 1, 10, 3, '#007800');
+    r(x + 8, ty - 17 - vv, 9, 4, '#7ae07a');
   },
 
   drawGround(def) {
@@ -2101,13 +2132,20 @@ const Game = {
     const t = performance.now() * 0.002;
     // 岩壁主体
     r(x0, gy, x1 - x0, GH - gy, def.ground);
-    // 块状岩石纹理
-    ctx.globalAlpha = 0.45;
-    for (let x = x0; x < x1; x += 16) {
-      r(x + 1, gy + 9, 13, 7, def.dirt);
-      r(x + 8, gy + 19, 13, 7, def.dirt);
+    // 圆润岩块（原版岩壁质感）
+    for (let x = x0; x < x1; x += 24) {
+      for (let row = 0; row < 2; row++) {
+        const ry = gy + 9 + row * 15;
+        const off = row % 2 ? 12 : 0;
+        r(x + off, ry, 21, 13, def.dirt);
+        r(x + off + 1, ry + 1, 19, 11, def.ground);
+        ctx.globalAlpha = 0.35;
+        r(x + off + 2, ry + 2, 17, 3, '#ffffff');
+        ctx.globalAlpha = 0.25;
+        r(x + off + 2, ry + 10, 17, 3, '#000000');
+        ctx.globalAlpha = 1;
+      }
     }
-    ctx.globalAlpha = 1;
     // 明亮草沿
     for (let x = x0; x < x1; x += 8) {
       r(x, gy - 1, 6, 2, def.grass);
