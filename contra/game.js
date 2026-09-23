@@ -1371,38 +1371,36 @@ class Player {
     r(2, 19 + legA, 5, 1, '#4a2a1a');
     r(9, 19 + legB, 5, 1, '#4a2a1a');
 
-    // === 身体 (蓝色军装) ===
-    r(2, 5, 12, 10, '#1a4ea0');
-    r(2, 5, 12, 1, '#4a8fe8');
-    r(2, 5, 1, 10, '#4a8fe8');
-    r(13, 5, 1, 10, '#0a2a6a');
-    r(2, 14, 12, 1, '#0a2a6a');
-    // 肩甲
-    r(1, 4, 3, 4, '#2a8add');
-    r(12, 4, 3, 4, '#2a8add');
-    r(1, 4, 3, 1, '#5ab0ee');
-    r(12, 4, 3, 1, '#5ab0ee');
+    // === 身体 (原版特征: 赤裸上身 + 蓝色裤子) ===
+    r(2, 5, 12, 10, '#e8a860');      // 古铜色躯干
+    r(2, 5, 12, 1, '#ffd6a0');       // 高光
+    r(2, 5, 1, 10, '#ffd6a0');
+    r(13, 5, 1, 10, '#a86030');      // 暗部
+    r(2, 14, 12, 1, '#a86030');
+    // 胸肌 / 腹肌阴影
+    r(4, 9, 8, 1, '#a86030');
+    r(5, 12, 6, 1, '#c07840');
+    // 肩
+    r(1, 4, 3, 4, '#e8a860');
+    r(12, 4, 3, 4, '#e8a860');
+    r(1, 4, 3, 1, '#ffd6a0');
+    r(12, 4, 3, 1, '#ffd6a0');
 
     // 白腰带
     r(2, 12, 12, 2, '#888888');
     r(2, 12, 12, 1, '#ffffff');
     r(3, 12, 2, 1, '#ffffff');
 
-    // 红围巾 (经典特征!)
-    r(4, 4, 8, 2, '#cc1a1a');
-    r(4, 4, 8, 1, '#ff4040');
-    r(2, 5, 2, 1, '#cc1a1a');
-
     // 武器颜色条
     if (this.fireMode !== W.default) {
       r(2, 9, 12, 1, WPN_COLOR[this.fireMode]);
     }
 
-    // === 头部: 橙色头发 (NES Contra Bill Rizer 特征) ===
+    // === 头部: 棕色头发 (原版 Bill Rizer 特征) ===
     // 头发
-    r(2, -2, 12, 4, '#ff8830');
-    r(2, -2, 12, 1, '#ffaa55');
-    r(2, 1, 12, 1, '#cc6622');
+    r(2, -2, 12, 4, '#8a4a18');
+    r(2, -2, 12, 1, '#c07830');
+    r(2, 1, 12, 1, '#5a2a08');
     // 脸
     r(3, 2, 10, 4, '#ffd6a0');
     r(3, 5, 10, 1, '#c08850');
@@ -1455,31 +1453,31 @@ const STAGES = [
   {
     name: '热带丛林', subtitle: 'JUNGLE — STAGE 1',
     width: 4096, groundY: GH - 40,
-    sky1: '#0a1838', sky2: '#16234a',
-    mountain1: '#142544', mountain2: '#1a2c52',
-    tree: '#0e1c34', treeLight: '#1a3055',
-    ground: '#2d4a1f', dirt: '#5a3a1a', grass: '#3d6b2a',
-    platformColor: '#243a1f', platformTop: '#3d6b2a', platformAccent: '#0e1c0a',
+    sky1: '#050508', sky2: '#0d0d16',
+    mountain1: '#101018', mountain2: '#1a1a26',
+    tree: '#00a800', treeLight: '#58d858',
+    ground: '#e0a848', dirt: '#a86818', grass: '#58d858',
+    platformColor: '#c08038', platformTop: '#58d858', platformAccent: '#7a4810',
     bgParticles: 'dust',
     hasWaterfall: true,
     palettes: { grunt: null, runner: null, turret: null, flyer: null },
     platforms: [
-      new Platform(360,  GH - 90,  96, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(560,  GH - 130, 80, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(720,  GH - 90,  80, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(960,  GH - 120, 96, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(1180, GH - 160, 80, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(1380, GH - 100, 100, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(1580, GH - 160, 80, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(1780, GH - 100, 96, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(2000, GH - 140, 120, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(2200, GH - 90,  80, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(2400, GH - 150, 96, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(2620, GH - 100, 80, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(2840, GH - 170, 100, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(3060, GH - 110, 100, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(3260, GH - 170, 80, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
-      new Platform(3460, GH - 100, 120, 12, '#243a1f', '#3d6b2a', '#0e1c0a'),
+      new Platform(360,  GH - 90,  96, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(560,  GH - 130, 80, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(720,  GH - 90,  80, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(960,  GH - 120, 96, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(1180, GH - 160, 80, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(1380, GH - 100, 100, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(1580, GH - 160, 80, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(1780, GH - 100, 96, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(2000, GH - 140, 120, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(2200, GH - 90,  80, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(2400, GH - 150, 96, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(2620, GH - 100, 80, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(2840, GH - 170, 100, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(3060, GH - 110, 100, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(3260, GH - 170, 80, 12, '#c08038', '#58d858', '#7a4810'),
+      new Platform(3460, GH - 100, 120, 12, '#c08038', '#58d858', '#7a4810'),
     ],
     BossClass: BossJungle,
     spawnPattern: [['grunt', 6], ['runner', 3], ['flyer', 3], ['turret', 2]],
@@ -1487,13 +1485,14 @@ const STAGES = [
   {
     name: '冰雪基地', subtitle: 'ICE BASE — STAGE 2',
     width: 4096, groundY: GH - 40,
-    sky1: '#0e1c34', sky2: '#1a2c52',
-    mountain1: '#3a5a8a', mountain2: '#5a7aaa',
-    tree: '#aac8ff', treeLight: '#ffffff',
-    ground: '#cce4ff', dirt: '#aabfd9', grass: '#e0eaff',
+    sky1: '#2a5a9a', sky2: '#86b8e8',
+    mountain1: '#5a8ac8', mountain2: '#8ab4e4',
+    tree: '#dceaff', treeLight: '#ffffff',
+    ground: '#dceaff', dirt: '#a8c4e0', grass: '#ffffff',
     platformColor: '#aac8ff', platformTop: '#ffffff', platformAccent: '#88aacc',
     bgParticles: 'snow',
     hasWaterfall: false,
+    waterColor: '#1a6ac8', waterLight: '#78c8ff',
     palettes: {
       grunt: { beret:'#5a6aaa', beretL:'#7a8aaa', beretD:'#3a4a7a', skin:'#e0eaff', skinD:'#88aacc', body:'#3a4a7a', bodyL:'#5a6a9a', bodyD:'#1a2a4a', pants:'#1a2a4a', pantsL:'#3a4a7a', boots:'#0a1a3a', gun:'#222', gunL:'#444', belt:'#88aacc', explode:['#aac8ff','#ffffff','#88aaff'] },
       runner: { body:'#5a6aaa', bodyL:'#7a8aaa', bodyD:'#3a4a7a', eye:'#00ffff', eyeGlow:'#88ffff', explode:['#aac8ff','#ffffff'] },
@@ -1525,13 +1524,14 @@ const STAGES = [
   {
     name: '异形要塞', subtitle: 'ALIEN HIVE — STAGE 3',
     width: 4096, groundY: GH - 40,
-    sky1: '#1a0a2a', sky2: '#3a1a4a',
-    mountain1: '#3a1a4a', mountain2: '#5a2a6a',
-    tree: '#aa3aff', treeLight: '#ff5be0',
-    ground: '#2a1a4a', dirt: '#5a2a6a', grass: '#7a2aaa',
+    sky1: '#3a0a5a', sky2: '#8a2a9a',
+    mountain1: '#5a2a6a', mountain2: '#8a3a9a',
+    tree: '#c85aff', treeLight: '#ff8af0',
+    ground: '#5a2a6a', dirt: '#8a3a9a', grass: '#c85aff',
     platformColor: '#4a1a6a', platformTop: '#aa3aff', platformAccent: '#2a0a4a',
     bgParticles: 'ember',
     hasWaterfall: false,
+    waterColor: '#c81a2a', waterLight: '#ff8a3a',
     palettes: {
       grunt: { beret:'#aa2a7a', beretL:'#cc4a9a', beretD:'#7a1a4a', skin:'#ff88cc', skinD:'#aa2a7a', body:'#7a2a4a', bodyL:'#aa4a7a', bodyD:'#4a0a2a', pants:'#3a1a4a', pantsL:'#5a2a6a', boots:'#1a0a2a', gun:'#222', gunL:'#444', belt:'#cc66ff', explode:['#ff5be0','#aa3aff','#ffffff'] },
       runner: { body:'#aa2a7a', bodyL:'#cc4a9a', bodyD:'#7a1a4a', eye:'#ff00ff', eyeGlow:'#ff88ff', explode:['#ff5be0','#aa3aff'] },
@@ -1878,15 +1878,11 @@ const Game = {
   },
 
   drawPostFx() {
-    ctx.globalAlpha = 0.08;
+    // 保留极轻的扫描线做街机质感；去掉压暗画面的重暗角（原版是高对比、明亮的）
+    ctx.globalAlpha = 0.03;
     ctx.fillStyle = '#000';
     for (let y = 0; y < VH; y += 3) ctx.fillRect(0, y, VW, 1);
     ctx.globalAlpha = 1;
-    const vg = ctx.createRadialGradient(VW/2, VH/2, VH * 0.4, VW/2, VH/2, VH * 0.75);
-    vg.addColorStop(0, 'rgba(0,0,0,0)');
-    vg.addColorStop(1, 'rgba(0,0,0,0.5)');
-    ctx.fillStyle = vg;
-    ctx.fillRect(0, 0, VW, VH);
   },
 
   drawScreenFlash() {
@@ -1914,12 +1910,12 @@ const Game = {
     const wx = 80, wy = 0;            // 世界坐标
     const ww = 80, wh = GH - 40;
     // 岩石包围 (世界坐标, 用 r() 自动按 S 缩放)
-    r(wx - 8, wy, 8, wh, '#3a2818');
-    r(wx + ww, wy, 8, wh, '#3a2818');
-    r(wx - 8, wy + wh - 16, ww + 16, 16, '#2a1a0a');
-    // 流水主体
+    r(wx - 8, wy, 8, wh, '#4a4a58');
+    r(wx + ww, wy, 8, wh, '#4a4a58');
+    r(wx - 8, wy + wh - 16, ww + 16, 16, '#2a2a38');
+    // 流水主体（原版是灰白色瀑布）
     for (let i = 0; i < 3; i++) {
-      r(wx + i * 2, wy, ww - i * 4, wh, i % 2 === 0 ? '#88ccee' : '#aaeeff');
+      r(wx + i * 2, wy, ww - i * 4, wh, i % 2 === 0 ? '#b0b0c4' : '#dcdcec');
     }
     // 水花白线 (动画)
     ctx.globalAlpha = 0.7;
@@ -1932,18 +1928,27 @@ const Game = {
     if (Math.random() < 0.4) {
       Game.particles.push(new Particle(wx + rnd(8, ww - 8), wy + 2,
         rnd(-0.3, 0.3), rnd(-1.5, -0.5), irnd(20, 40),
-        pick(['#aaeeff', '#ffffff']), irnd(2, 4), 0.02, 'smoke'));
+        pick(['#dcdcec', '#ffffff']), irnd(2, 4), 0.02, 'smoke'));
     }
   },
 
   drawTitle() {
     const t = performance.now() / 1000;
     const def = STAGES[0];
-    r(0, 0, GW, GH - 40, def.mountain1);
-    for (let i = 0; i < 6; i++) {
-      const h = 30 + Math.sin(i * 0.9 + t) * 10;
-      r(i * 90, GH - 60 - h, 90, GH, def.mountain2);
-    }
+    // 背景：明亮丛林海报（不再是黑漆漆的远山）
+    const skyG = ctx.createLinearGradient(0, 0, 0, VH);
+    skyG.addColorStop(0, '#050508');
+    skyG.addColorStop(0.55, '#0d1a12');
+    skyG.addColorStop(1, '#0a1408');
+    ctx.fillStyle = skyG;
+    ctx.fillRect(0, 0, VW, VH);
+    this.camera.apply(() => {
+      this.drawJungleBg(120);
+      this.drawGround(def);
+    });
+    // 压暗一层，保证标题可读
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fillRect(0, 0, VW, VH);
     ctx.save();
     ctx.shadowColor = '#ffcc33';
     ctx.shadowBlur = 30;
@@ -1954,10 +1959,10 @@ const Game = {
     ctx.restore();
     ctx.fillStyle = '#ff5b3a';
     ctx.font = 'bold 28px monospace';
-    ctx.fillText('CLASSIC — 1987', VW / 2, 220);
+    ctx.fillText('经典丛林 · JUNGLE', VW / 2, 220);
 
     // 角色剪影 (放大版)
-    const px = VW / 2 - 70, py = 280;
+    const px = GW / 2 - 22, py = GH - 170;   // 世界坐标（原为屏幕坐标，导致立绘被画到画布外）
     ctx.globalAlpha = 0.3;
     ctx.fillStyle = '#000';
     ctx.fillRect((px - 4) * S, (py + 76) * S, 88 * S, 4 * S);
@@ -1969,26 +1974,26 @@ const Game = {
     r(px + 36, py + 56, 16, 4, '#1f5fc4');
     r(px + 6, py + 72, 20, 6, '#1a0a00');
     r(px + 34, py + 72, 20, 6, '#1a0a00');
-    // 身体
-    r(px + 4, py + 24, 44, 36, '#1a4ea0');
-    r(px + 4, py + 24, 44, 4, '#4a8fe8');
-    r(px + 4, py + 24, 4, 36, '#4a8fe8');
-    r(px + 44, py + 24, 4, 36, '#0a2a6a');
-    r(px + 0, py + 20, 12, 16, '#2a8add');
-    r(px + 44, py + 20, 12, 16, '#2a8add');
+    // 身体（赤膊）
+    r(px + 4, py + 24, 44, 36, '#e8a860');
+    r(px + 4, py + 24, 44, 4, '#ffd6a0');
+    r(px + 4, py + 24, 4, 36, '#ffd6a0');
+    r(px + 44, py + 24, 4, 36, '#a86030');
+    r(px + 0, py + 20, 12, 16, '#e8a860');
+    r(px + 44, py + 20, 12, 16, '#e8a860');
+    // 胸肌 / 腹肌
+    r(px + 12, py + 34, 28, 3, '#a86030');
+    r(px + 16, py + 44, 20, 3, '#c07840');
     // 腰带
     r(px + 4, py + 48, 44, 4, '#888888');
     r(px + 4, py + 48, 44, 2, '#ffffff');
-    // 红围巾
-    r(px + 8, py + 20, 36, 6, '#cc1a1a');
-    r(px + 8, py + 20, 36, 2, '#ff4040');
     // 头
     r(px + 8, py + 4, 36, 18, '#ffd6a0');
     r(px + 8, py + 16, 36, 2, '#c08850');
-    // 橙头发
-    r(px + 4, py - 4, 44, 14, '#ff8830');
-    r(px + 4, py - 4, 44, 4, '#ffaa55');
-    r(px + 4, py + 8, 44, 2, '#cc6622');
+    // 棕发
+    r(px + 4, py - 4, 44, 14, '#8a4a18');
+    r(px + 4, py - 4, 44, 4, '#c07830');
+    r(px + 4, py + 8, 44, 2, '#5a2a08');
     // 眼
     r(px + 16, py + 10, 8, 4, '#000');
     r(px + 32, py + 10, 8, 4, '#000');
@@ -2025,6 +2030,7 @@ const Game = {
 
   drawParallax(def) {
     const cx = Game.camera.x;
+    if (this.stageIdx === 0) { this.drawJungleBg(cx); return; }
     // 远山
     for (let i = 0; i < 12; i++) {
       const h = 30 + Math.sin(i * 1.3 + cx * 0.001) * 8;
@@ -2051,23 +2057,71 @@ const Game = {
     }
   },
 
+  // 原版丛林关标志性背景：顶部黑底灰白瀑布帘 + 翠绿棕榈树排 + 灌木丛
+  drawJungleBg(cx) {
+    const gy = this.groundY();
+    const bandH = 58;
+    // 顶部崖壁 + 瀑布帘（视差最慢）
+    r(0, 0, GW, bandH, '#000000');
+    for (let i = 0; i < 12; i++) {
+      const x = i * 64 + (cx * 0.92) % 64;
+      r(x + 2, 0, 15, bandH, '#2a2a38');
+      r(x + 2, 0, 3, bandH, '#42425a');
+      r(x + 49, 0, 15, bandH, '#2a2a38');
+      r(x + 49, 0, 3, bandH, '#42425a');
+      r(x + 17, 0, 30, bandH - 10, '#b0b0c4');
+      r(x + 23, 0, 18, bandH - 4, '#dcdcec');
+      r(x + 29, 0, 7, bandH, '#ffffff');
+    }
+    // 棕榈树排
+    for (let i = 0; i < 20; i++) {
+      const x = i * 58 + (cx * 0.55) % 58;
+      const ty = gy - 30;
+      r(x + 9, ty, 4, 30, '#7a4a10');
+      r(x + 9, ty, 2, 30, '#c08a38');
+      r(x - 3, ty - 11, 28, 7, '#00a800');
+      r(x + 1, ty - 17, 18, 7, '#58d858');
+      r(x - 7, ty - 5, 12, 5, '#00a800');
+      r(x + 19, ty - 5, 12, 5, '#00a800');
+      r(x + 7, ty - 19, 6, 4, '#7ae07a');
+    }
+    // 灌木丛排（最近的一层）
+    for (let i = 0; i < 24; i++) {
+      const x = i * 46 + (cx * 0.3) % 46;
+      r(x, gy - 14, 16, 14, '#00a800');
+      r(x + 4, gy - 19, 9, 7, '#58d858');
+      r(x - 2, gy - 8, 22, 8, '#007800');
+    }
+  },
+
   drawGround(def) {
     const gy = this.groundY();
     const x0 = Math.floor(this.camera.x / 16) * 16 - 16;
     const x1 = x0 + GW + 48;
+    const t = performance.now() * 0.002;
+    // 岩壁主体
     r(x0, gy, x1 - x0, GH - gy, def.ground);
+    // 块状岩石纹理
+    ctx.globalAlpha = 0.45;
+    for (let x = x0; x < x1; x += 16) {
+      r(x + 1, gy + 9, 13, 7, def.dirt);
+      r(x + 8, gy + 19, 13, 7, def.dirt);
+    }
+    ctx.globalAlpha = 1;
+    // 明亮草沿
     for (let x = x0; x < x1; x += 8) {
       r(x, gy - 1, 6, 2, def.grass);
       r(x + 4, gy - 3, 4, 3, def.grass);
       r(x + 2, gy - 5, 2, 2, def.grass);
     }
-    r(x0, gy + 6, x1 - x0, 4, def.dirt);
-    ctx.globalAlpha = 0.4;
-    r(x0, gy + 10, x1 - x0, GH, '#000');
-    ctx.globalAlpha = 0.2;
-    for (let x = x0; x < x1; x += 24) {
-      r(x, gy + 12, 8, 2, '#000');
-      r(x + 12, gy + 20, 4, 1, '#000');
+    // 底部水面（原版丛林关的亮蓝水）
+    const wy = GH - 11;
+    r(x0, wy, x1 - x0, 11, def.waterColor || '#0058f8');
+    ctx.globalAlpha = 0.8;
+    for (let x = x0; x < x1; x += 12) {
+      const off = Math.sin(t + x * 0.12) * 2;
+      r(x + off, wy + 2, 6, 1, def.waterLight || '#58a8ff');
+      r(x + 5 + off, wy + 6, 4, 1, '#ffffff');
     }
     ctx.globalAlpha = 1;
   },
