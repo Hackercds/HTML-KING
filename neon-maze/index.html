@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<title>霓虹迷宫潜行 · Neon Maze</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #02000a; color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+canvas#game { display: block; width: 100%; height: 100%; cursor: none; }
+
+/* ===== HUD ===== */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0; transition: opacity 0.4s; }
+#hud.show { opacity: 1; }
+
+/* 准星 */
+#crosshair { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; transform: translate(-50%, -50%); }
+#crosshair::before, #crosshair::after { content: ''; position: absolute; background: rgba(0, 240, 255, 0.7); box-shadow: 0 0 6px rgba(0, 240, 255, 0.8); }
+#crosshair::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
+#crosshair::after { top: 50%; left: 0; height: 2px; width: 100%; transform: translateY(-50%); }
+#crosshair .dot { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; border-radius: 50%; background: #00f0ff; transform: translate(-50%, -50%); box-shadow: 0 0 8px #00f0ff; }
+
+/* 顶部信息条 */
+#topbar { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 14px; align-items: center;
+  background: rgba(8, 2, 24, 0.55); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 12px; padding: 8px 18px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#topbar .item { display: flex; flex-direction: column; align-items: center; min-width: 64px; }
+#topbar .k { font-size: 9px; letter-spacing: 2px; color: #6a6a8a; text-transform: uppercase; }
+#topbar .v { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+#topbar .lvl { color: #00f0ff; } #topbar .tm { color: #ffd86b; } #topbar .score { color: #ff5af7; }
+#topbar .sep { width: 1px; height: 22px; background: rgba(255, 255, 255, 0.1); }
+
+/* 暴露值条 */
+#exposure-wrap { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); width: 280px; text-align: center; }
+#exposure-label { font-size: 10px; letter-spacing: 3px; color: #6a6a8a; margin-bottom: 5px; text-transform: uppercase; }
+#exposure-bar { height: 10px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; overflow: hidden; position: relative; }
+#exposure-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00f0ff 0%, #ffd86b 50%, #ff3a5a 100%); border-radius: 5px; transition: width 0.15s linear; box-shadow: 0 0 12px currentColor; }
+#exposure-wrap.danger #exposure-fill { animation: pulse 0.4s infinite alternate; }
+@keyframes pulse { from { box-shadow: 0 0 8px #ff3a5a; } to { box-shadow: 0 0 22px #ff3a5a; } }
+
+/* 提示文字 */
+#hint { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); font-size: 13px; color: #b6b4d4;
+  letter-spacing: 1px; text-align: center; text-shadow: 0 0 8px rgba(0,0,0,0.8); opacity: 0; transition: opacity 0.3s; }
+#hint.show { opacity: 1; }
+
+/* 状态指示（手电/姿态） */
+#status { position: absolute; bottom: 28px; left: 28px; display: flex; flex-direction: column; gap: 8px; }
+#status .chip { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #8b8aa8;
+  background: rgba(8, 2, 24, 0.55); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px 11px;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+#status .chip .ico { width: 8px; height: 8px; border-radius: 50%; background: #555; transition: all 0.2s; }
+#status .chip.on { color: #00f0ff; border-color: rgba(0, 240, 255, 0.4); }
+#status .chip.on .ico { background: #00f0ff; box-shadow: 0 0 8px #00f0ff; }
+#status .chip.crouch { color: #ffd86b; border-color: rgba(255, 216, 107, 0.4); }
+#status .chip.crouch .ico { background: #ffd86b; box-shadow: 0 0 8px #ffd86b; }
+
+/* 小地图 */
+#minimap-wrap { position: absolute; top: 18px; right: 18px; width: 150px; height: 150px;
+  background: rgba(8, 2, 24, 0.6); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 10px; padding: 6px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#minimap { width: 100%; height: 100%; display: block; }
+
+/* 受击/被发现红色边缘 */
+#danger-vignette { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 120px 30px rgba(255, 58, 90, 0); transition: box-shadow 0.2s; }
+#danger-vignette.alert { box-shadow: inset 0 0 140px 40px rgba(255, 58, 90, 0.55); }
+
+/* ===== Overlay 通用 ===== */
+.overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+  background: rgba(2, 0, 10, 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 20; padding: 24px; }
+.overlay.show { display: flex; }
+.panel { width: 100%; max-width: 420px; text-align: center; }
+.brand { font-size: 11px; letter-spacing: 6px; color: #8a7bff; text-transform: uppercase; margin-bottom: 10px; }
+h1 { font-size: 38px; font-weight: 800; letter-spacing: 2px; line-height: 1.1; margin-bottom: 8px;
+  background: linear-gradient(135deg, #00f0ff 0%, #ff5af7 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sub { font-size: 13px; color: #8b8aa8; margin-bottom: 24px; letter-spacing: 1px; }
+.row { display: flex; gap: 10px; margin-bottom: 10px; }
+.btn { flex: 1; padding: 13px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff; font-size: 14px; font-weight: 600; border-radius: 11px; cursor: pointer; font-family: inherit;
+  transition: transform 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s; }
+.btn:hover { background: rgba(0, 240, 255, 0.08); border-color: rgba(0, 240, 255, 0.5); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn.primary { background: linear-gradient(135deg, #00d4ff 0%, #b347ff 100%); border: none; color: #06021a; font-weight: 700; }
+.btn.primary:hover { box-shadow: 0 0 28px rgba(0, 212, 255, 0.55); }
+.btn.ghost { background: transparent; }
+
+.scoreboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+.sb { padding: 12px 6px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; }
+.sb .k { font-size: 10px; color: #8b8aa8; letter-spacing: 1px; text-transform: uppercase; }
+.sb .v { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 3px; }
+.sb .v.cyan { color: #00f0ff; } .sb .v.pink { color: #ff5af7; } .sb .v.yellow { color: #ffd86b; }
+
+.help { text-align: left; font-size: 13px; color: #b6b4d4; line-height: 1.85; background: rgba(255, 255, 255, 0.03);
+  padding: 16px; border-radius: 11px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 18px; }
+.help b { color: #fff; }
+.key { display: inline-block; font-size: 11px; padding: 1px 7px; background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; font-family: ui-monospace, monospace; margin: 0 2px; }
+.tag { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 999px;
+  background: rgba(0, 240, 255, 0.12); color: #5ff0ff; letter-spacing: 1px; margin-bottom: 12px; }
+.tag.red { background: rgba(255, 58, 90, 0.15); color: #ff7a8a; }
+.tag.green { background: rgba(90, 247, 158, 0.15); color: #7affa8; }
+
+.toggle { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
+.switch { width: 38px; height: 22px; background: rgba(255,255,255,0.1); border-radius: 11px; position: relative; transition: background 0.2s; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: left 0.2s; }
+.switch.on { background: linear-gradient(135deg, #00d4ff, #b347ff); }
+.switch.on::after { left: 18px; }
+
+.footer { font-size: 11px; color: #555274; margin-top: 16px; letter-spacing: 1px; }
+.back-link { display: inline-block; margin-top: 14px; padding: 6px 14px; font-size: 12px; color: #8b8aa8;
+  text-decoration: none; letter-spacing: 1px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.2s; }
+.back-link:hover { color: #5ff0ff; border-color: rgba(0, 240, 255, 0.4); background: rgba(0, 240, 255, 0.06); }
+
+/* loading / fatal */
+#loading, #fatal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 50;
+  background: #02000a; flex-direction: column; gap: 18px; }
+#loading.hide { display: none; }
+#fatal { display: none; z-index: 60; }
+#fatal.show { display: flex; }
+.loader { width: 44px; height: 44px; border: 3px solid rgba(0, 240, 255, 0.15); border-top-color: #00f0ff; border-radius: 50%; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading .txt, #fatal .txt { font-size: 13px; color: #8b8aa8; letter-spacing: 2px; }
+#fatal .txt { color: #ff7a8a; }
+
+/* 飘字提示 */
+#toast { position: fixed; left: 50%; top: 22%; transform: translateX(-50%); padding: 10px 20px;
+  background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 999px; font-size: 13px;
+  color: #fff; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s; z-index: 15; letter-spacing: 1px; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(6px); }
+#toast .em { font-weight: 800; color: #00f0ff; }
+
+/* 移动端触控提示 */
+#mobile-note { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  #mobile-note { display: block; font-size: 12px; color: #ffd86b; margin-top: 8px; }
+}
+@media (max-width: 600px) { h1 { font-size: 30px; } .panel { padding: 8px; } .btn { padding: 14px 12px; font-size: 15px; }
+  #minimap-wrap { width: 110px; height: 110px; } #topbar { gap: 10px; padding: 7px 12px; } #topbar .item { min-width: 50px; } #topbar .v { font-size: 15px; } }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="danger-vignette"></div>
+  <div id="crosshair"><div class="dot"></div></div>
+  <div id="topbar">
+    <div class="item"><div class="k">Level</div><div class="v lvl" id="hud-level">1</div></div>
+    <div class="sep"></div>
+    <div class="item"><div class="k">Time</div><div class="v tm" id="hud-time">0.0</div></div>
+    <div class="sep"></div>
+    <div class="item"><div class="k">Score</div><div class="v score" id="hud-score">0</div></div>
+  </div>
+  <div id="minimap-wrap"><canvas id="minimap" width="280" height="280"></canvas></div>
+  <div id="status">
+    <div class="chip" id="chip-light"><div class="ico"></div><span id="chip-light-txt">手电 关</span></div>
+    <div class="chip" id="chip-stance"><div class="ico"></div><span id="chip-stance-txt">站立</span></div>
+  </div>
+  <div id="exposure-wrap">
+    <div id="exposure-label">EXPOSURE 暴露值</div>
+    <div id="exposure-bar"><div id="exposure-fill"></div></div>
+  </div>
+  <div id="hint"></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- 菜单 -->
+<div class="overlay show" id="mainMenu">
+  <div class="panel">
+    <div class="brand">NEON ARCADE</div>
+    <h1>霓虹迷宫潜行</h1>
+    <div class="sub">Neon Maze Infiltration</div>
+    <div class="scoreboard">
+      <div class="sb"><div class="k">Best</div><div class="v yellow" id="menu-best">0</div></div>
+      <div class="sb"><div class="k">Cleared</div><div class="v cyan" id="menu-cleared">0</div></div>
+      <div class="sb"><div class="k">Last</div><div class="v pink" id="menu-last">0</div></div>
+    </div>
+    <div class="row"><button class="btn primary" id="btn-play">开始潜入</button></div>
+    <div class="row">
+      <button class="btn" id="btn-help">玩法</button>
+      <button class="btn" id="btn-settings">设置</button>
+    </div>
+    <div class="footer">第一人称 · 鼠标转视角 · WASD 移动</div>
+    <div id="mobile-note">（本游戏需键鼠，移动端体验受限）</div>
+    <a class="back-link" href="../">← 返回游戏厅</a>
+  </div>
+</div>
+
+<div class="overlay" id="helpMenu">
+  <div class="panel">
+    <div class="tag">HOW TO PLAY</div>
+    <h1>玩法说明</h1>
+    <div class="help">
+      <div><b>目标：</b>在迷宫中找到品红色出口光柱，通关进入下一层。</div>
+      <div style="margin-top:8px;"><b>移动：</b> <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>，鼠标转视角</div>
+      <div><b>跑/蹲：</b> <span class="key">Shift</span> 跑步（快但易暴露）· <span class="key">Ctrl</span> 蹲伏（慢但隐蔽）</div>
+      <div><b>手电：</b> <span class="key">F</span> 开关手电筒（关灯更隐蔽但看不清）</div>
+      <div><b>暂停：</b> <span class="key">Esc</span></div>
+      <div style="margin-top:8px;"><b>猎手：</b>发光球体带视线锥，被照射会累积暴露值。满值即失败。</div>
+      <div style="margin-top:6px;"><b>潜行：</b>蹲伏、关灯、脱离视线可降低暴露值。未被发现通关有额外加分。</div>
+    </div>
+    <div class="row"><button class="btn primary" id="btn-help-back">返回</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="settingsMenu">
+  <div class="panel">
+    <div class="tag">SETTINGS</div>
+    <h1>设置</h1>
+    <div class="toggle" id="toggle-sound"><span>音效</span><div class="switch on" id="sw-sound"></div></div>
+    <div class="toggle" id="toggle-quality"><span>高画质</span><div class="switch on" id="sw-quality"></div></div>
+    <div class="toggle" id="toggle-sensitivity"><span>鼠标灵敏度</span><div class="switch" id="sw-sens"></div></div>
+    <div class="row" style="margin-top: 14px;">
+      <button class="btn ghost" id="btn-reset">重置进度</button>
+      <button class="btn primary" id="btn-settings-back">完成</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="pauseMenu">
+  <div class="panel">
+    <div class="tag">PAUSED</div>
+    <h1>已暂停</h1>
+    <div class="sub">按 Esc 或点击继续</div>
+    <div class="row"><button class="btn primary" id="btn-resume">继续</button></div>
+    <div class="row"><button class="btn" id="btn-restart">重新开始</button></div>
+    <a class="back-link" href="../">← 返回游戏厅</a>
+  </div>
+</div>
+
+<div class="overlay" id="winMenu">
+  <div class="panel">
+    <div class="tag green">CLEARED</div>
+    <h1 id="win-title">潜入成功</h1>
+    <div class="sub" id="win-sub">进入下一层</div>
+    <div class="scoreboard">
+      <div class="sb"><div class="k">Time</div><div class="v cyan" id="win-time">0.0</div></div>
+      <div class="sb"><div class="k">Score</div><div class="v pink" id="win-score">0</div></div>
+      <div class="sb"><div class="k">Bonus</div><div class="v yellow" id="win-bonus">0</div></div>
+    </div>
+    <div class="row"><button class="btn primary" id="btn-next">下一层</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="loseMenu">
+  <div class="panel">
+    <div class="tag red">DETECTED</div>
+    <h1>被发现</h1>
+    <div class="sub">你被猎手锁定了</div>
+    <div class="scoreboard">
+      <div class="sb"><div class="k">Level</div><div class="v cyan" id="lose-level">1</div></div>
+      <div class="sb"><div class="k">Time</div><div class="v yellow" id="lose-time">0.0</div></div>
+      <div class="sb"><div class="k">Score</div><div class="v pink" id="lose-score">0</div></div>
+    </div>
+    <div class="row"><button class="btn primary" id="btn-retry">再来一次</button></div>
+    <a class="back-link" href="../">← 返回游戏厅</a>
+  </div>
+</div>
+
+<div id="loading"><div class="loader"></div><div class="txt">LOADING</div></div>
+<div id="fatal"><div class="txt">渲染初始化失败，请使用支持 WebGL 的现代浏览器</div></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="game.js"></script>
+</body>
+</html>
