@@ -12,6 +12,7 @@ Lives at: <https://show.hackercd.cn/>
 | **合成大西瓜** Merge Watermelon | [`merge-watermelon/`](merge-watermelon/) | 物理合成 — 相同水果相碰合成，连击加倍，一路合到大西瓜 |
 | **魂斗罗** Contra Classic | [`contra/`](contra/) | 经典横版卷轴射击 — 三关挑战（丛林 / 冰雪 / 异形）× 4 种武器 × Konami 30 条命秘籍 |
 | **霓虹迷宫潜行** Neon Maze | [`neon-maze/`](neon-maze/) | 第一人称 3D 潜行 — 在霓虹迷宫中躲避猎手视线，找到出口 |
+| **鹈鹕骑车·三厂对决** Pelican Bicycle Showdown | [`pelican-bicycle/`](pelican-bicycle/) | AI 对比实验 — mcode / Claude Code / Codex + GLM-5.3 同题实现，页内切换 |
 
 ## ✨ Design Principles
 
