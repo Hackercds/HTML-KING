@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>鹈鹕骑车 · 三厂对决 — Pelican Bicycle Showdown</title>
+<title>鹈鹕骑车 · 五版对决 — Pelican Bicycle Showdown</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root { --bg:#05010f; --line:rgba(255,255,255,.1); --dim:#8b8aa8; --faint:#555274; }
@@ -55,17 +55,20 @@
   <header>
     <h1>鹈鹕骑车<span class="en">PELICAN BICYCLE SHOWDOWN</span></h1>
     <nav class="tabs" id="tabs" aria-label="选择版本"></nav>
-    <span class="hint">按 1 / 2 / 3 切换</span>
+    <span class="hint" id="hint">按 1 / 2 / 3 切换</span>
   </header>
   <iframe id="stage" title="pelican bicycle demo"></iframe>
   <script>
     const VERSIONS = [
       { key: "mcode",  label: "mcode",       sub: "mcode + GLM-5.3",  src: "mcode/pelican-bicycle.html",  ac: "#5ff0ff" },
       { key: "claude", label: "Claude Code", sub: "claude + GLM-5.3", src: "claude/pelican-bicycle.html", ac: "#ff5af7" },
-      { key: "codex",  label: "Codex",       sub: "codex + GLM-5.3",  src: "codex/pelican-bike.html",     ac: "#b18cff" }
+      { key: "codex",  label: "Codex",       sub: "codex + GLM-5.3",  src: "codex/pelican-bike.html",     ac: "#b18cff" },
+      { key: "mcode-minimax-default", label: "mcode", sub: "mcode + minimax 3.1 · default", docTitle: "mcode + minimax 3.1 · default", src: "mcode-minimax-default/pelican-bike.html", ac: "#ffb347" },
+      { key: "mcode-minimax-max",      label: "mcode", sub: "mcode + minimax 3.1 · max",      docTitle: "mcode + minimax 3.1 · max",      src: "mcode-minimax-max/pelican-bike.html",      ac: "#7cff6b" }
     ];
     const tabs = document.getElementById("tabs");
     const stage = document.getElementById("stage");
+    document.getElementById("hint").textContent = "按 " + VERSIONS.map((v, i) => i + 1).join(" / ") + " 切换";
     VERSIONS.forEach((v, i) => {
       const b = document.createElement("button");
       b.className = "tab";
@@ -85,12 +88,12 @@
       });
       if (!stage.src.endsWith(v.src)) stage.src = v.src;
       if (location.hash !== "#" + v.key) history.replaceState(null, "", "#" + v.key);
-      document.title = "鹈鹕骑车 · " + v.label + " — Pelican Bicycle Showdown";
+      document.title = "鹈鹕骑车 · " + (v.docTitle || v.label) + " — Pelican Bicycle Showdown";
     }
     document.addEventListener("keydown", e => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
-      const i = ["1", "2", "3"].indexOf(e.key);
-      if (i >= 0) select(VERSIONS[i].key);
+      const i = Number(e.key) - 1;
+      if (Number.isInteger(i) && i >= 0 && i < VERSIONS.length) select(VERSIONS[i].key);
     });
     select((location.hash || "#mcode").slice(1));
   </script>
